@@ -29,6 +29,8 @@ object ToolCatalog {
         ToolItem("accelerometer", "شتاب‌سنج", "محورهای X، Y و Z", ToolCategory.MEASUREMENT, "↗"),
         ToolItem("gyroscope", "ژیروسکوپ", "سرعت زاویه‌ای دستگاه", ToolCategory.MEASUREMENT, "⟳"),
         ToolItem("flashlight", "چراغ‌قوه", "کنترل فلش دوربین", ToolCategory.MEASUREMENT, "✦"),
+        ToolItem("magnifier", "ذره‌بین", "نمای زنده دوربین با بزرگ‌نمایی", ToolCategory.MEASUREMENT, "⌕"),
+        ToolItem("mirror", "آینه", "نمای زنده دوربین جلویی", ToolCategory.MEASUREMENT, "◫"),
 
         ToolItem("calculator", "ماشین‌حساب علمی", "عبارت، توان، ریشه و توابع مثلثاتی", ToolCategory.CALCULATION, "ƒx"),
         ToolItem("percentage", "درصد", "درصد یک عدد و نسبت دو عدد", ToolCategory.CALCULATION, "%"),
@@ -69,6 +71,9 @@ object ToolCatalog {
         ToolItem("clipboard", "کلیپ‌بورد", "مشاهده و کپی متن", ToolCategory.DIGITAL, "▣"),
         ToolItem("counter", "شمارنده", "شمارنده دائمی ساده", ToolCategory.DIGITAL, "+1"),
         ToolItem("qr", "QR ساز", "ساخت QR از متن یا لینک", ToolCategory.DIGITAL, "▦"),
+        ToolItem("qr_scanner", "اسکن QR", "اسکن زنده QR با دوربین", ToolCategory.DIGITAL, "⌗"),
+        ToolItem("barcode_scanner", "اسکن بارکد", "خواندن بارکدهای رایج با دوربین", ToolCategory.DIGITAL, "▥"),
+        ToolItem("scan_history", "تاریخچه اسکن", "مشاهده و کپی اسکن‌های اخیر", ToolCategory.DIGITAL, "≡"),
 
         ToolItem("battery", "باتری", "شارژ، وضعیت و دما", ToolCategory.SYSTEM, "⚡"),
         ToolItem("storage", "فضای ذخیره‌سازی", "کل، مصرف‌شده و آزاد", ToolCategory.SYSTEM, "▰"),
