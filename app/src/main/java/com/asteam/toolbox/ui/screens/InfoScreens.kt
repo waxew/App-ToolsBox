@@ -54,10 +54,7 @@ fun ContactScreen() {
         ToolHeader("ارتباط با ما", "برای گزارش خطا، پیشنهاد ابزار جدید یا بازخورد درباره برنامه با تیم توسعه تماس بگیرید.")
         ResultCard("ایمیل", email)
         Button(
-            onClick = {
-                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email"))
-                runCatching { context.startActivity(intent) }
-            },
+            onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email"))) } },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("ارسال ایمیل") }
         Text(
@@ -71,49 +68,53 @@ fun ContactScreen() {
 }
 
 @Composable
-fun SettingsScreen(
-    preferences: UserPreferences,
-    onChanged: () -> Unit,
-) {
+fun SettingsScreen(preferences: UserPreferences, onChanged: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         ToolHeader("تنظیمات", "شخصی‌سازی در حافظه محلی ذخیره می‌شود و بعد از آپدیت باقی می‌ماند.")
 
-        Text("ظاهر برنامه", fontWeight = FontWeight.Bold)
+        Text("حالت نمایش", fontWeight = FontWeight.Bold)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("system" to "سیستم", "light" to "روشن", "dark" to "تیره").forEach { (id, label) ->
-                FilterChip(
-                    selected = preferences.themeMode == id,
-                    onClick = { preferences.themeMode = id; onChanged() },
-                    label = { Text(label) },
-                    modifier = Modifier.weight(1f),
-                )
+                FilterChip(selected = preferences.themeMode == id, onClick = { preferences.themeMode = id; onChanged() }, label = { Text(label) }, modifier = Modifier.weight(1f))
             }
         }
 
-        Text("نمایش صفحه اصلی", fontWeight = FontWeight.Bold)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = preferences.homeLayout == "grid",
-                onClick = { preferences.homeLayout = "grid"; onChanged() },
-                label = { Text("شبکه‌ای") },
-                modifier = Modifier.weight(1f),
-            )
-            FilterChip(
-                selected = preferences.homeLayout == "list",
-                onClick = { preferences.homeLayout = "list"; onChanged() },
-                label = { Text("فهرستی") },
-                modifier = Modifier.weight(1f),
-            )
+        Text("رنگ اصلی", fontWeight = FontWeight.Bold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("blue" to "آبی", "green" to "سبز", "orange" to "نارنجی", "purple" to "بنفش").forEach { (id, label) ->
+                FilterChip(selected = preferences.accentColor == id, onClick = { preferences.accentColor = id; onChanged() }, label = { Text(label) }, modifier = Modifier.weight(1f))
+            }
         }
 
-        ResultCard("ابزارهای مخفی", preferences.hiddenTools().size.toString(), "ساختار ذخیره‌سازی برای مخفی‌سازی ابزارها فعال است.")
+        Text("چیدمان صفحه اصلی", fontWeight = FontWeight.Bold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = preferences.homeLayout == "grid", onClick = { preferences.homeLayout = "grid"; onChanged() }, label = { Text("شبکه‌ای") }, modifier = Modifier.weight(1f))
+            FilterChip(selected = preferences.homeLayout == "list", onClick = { preferences.homeLayout = "list"; onChanged() }, label = { Text("فهرستی") }, modifier = Modifier.weight(1f))
+        }
+
+        Text("مرتب‌سازی", fontWeight = FontWeight.Bold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("catalog" to "پیش‌فرض", "title" to "نام", "recent" to "اخیر").forEach { (id, label) ->
+                FilterChip(selected = preferences.sortMode == id, onClick = { preferences.sortMode = id; onChanged() }, label = { Text(label) }, modifier = Modifier.weight(1f))
+            }
+        }
+
+        Text("اندازه کارت‌ها", fontWeight = FontWeight.Bold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("compact" to "فشرده", "normal" to "معمولی", "large" to "بزرگ").forEach { (id, label) ->
+                FilterChip(selected = preferences.cardSize == id, onClick = { preferences.cardSize = id; onChanged() }, label = { Text(label) }, modifier = Modifier.weight(1f))
+            }
+        }
+
+        ResultCard("مجموعه من", "${preferences.customCollection().size} ابزار", "با آیکون نشانک روی کارت‌ها مدیریت می‌شود.")
+        ResultCard("ابزارهای مخفی", preferences.hiddenTools().size.toString(), "با آیکون چشم روی کارت ابزار مخفی می‌شود.")
         if (preferences.hiddenTools().isNotEmpty()) {
             Button(
                 onClick = {
-                    preferences.hiddenTools().forEach { preferences.setToolHidden(it, false) }
+                    preferences.hiddenTools().toList().forEach { preferences.setToolHidden(it, false) }
                     onChanged()
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -121,7 +122,7 @@ fun SettingsScreen(
         }
 
         ResultCard("حریم خصوصی", "Offline-first", "داده‌های پروفایل، علاقه‌مندی‌ها و تنظیمات روی دستگاه ذخیره می‌شوند.")
-        ResultCard("مجوزها", "در لحظه نیاز", "دوربین، میکروفون یا موقعیت فقط برای ابزار مرتبط و هنگام استفاده درخواست می‌شود.")
+        ResultCard("مجوزها", "در لحظه نیاز", "دوربین، میکروفون، موقعیت یا اعلان فقط برای قابلیت مرتبط درخواست می‌شود.")
         ResultCard("حفظ اطلاعات در آپدیت", "فعال", "تا زمانی که برنامه حذف یا داده‌های آن پاک نشود، تنظیمات کاربر باقی می‌ماند.")
     }
 }
