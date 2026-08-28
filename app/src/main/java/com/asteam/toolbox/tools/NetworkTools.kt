@@ -3,6 +3,7 @@ package com.asteam.toolbox.tools
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.TrafficStats
 import android.net.wifi.WifiManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,15 +28,18 @@ import com.asteam.toolbox.ui.components.NumberField
 import com.asteam.toolbox.ui.components.ResultCard
 import com.asteam.toolbox.ui.components.ToolHeader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.Socket
 import java.net.URL
 
-/** Network diagnostics introduced in v1.5.0. */
+/** Network diagnostics introduced in v1.5 and completed for v2.0. */
 @Composable
 fun NetworkToolScreen(toolId: String, title: String) {
     Column(
@@ -49,6 +54,9 @@ fun NetworkToolScreen(toolId: String, title: String) {
             "ping_host" -> PingScreen()
             "port_test" -> PortTestScreen()
             "wifi_info" -> WifiInfoScreen()
+            "whois_lookup" -> WhoisScreen()
+            "network_speed" -> NetworkSpeedScreen()
+            "data_usage" -> DataUsageScreen()
             else -> ToolHeader(title)
         }
     }
@@ -77,8 +85,8 @@ private fun NetworkStateScreen() {
 private fun LocalIpScreen() {
     val result = remember {
         runCatching {
-            NetworkInterface.getNetworkInterfaces().toList()
-                .flatMap { it.inetAddresses.toList() }
+            NetworkInterface.getNetworkInterfaces().asSequence()
+                .flatMap { it.inetAddresses.asSequence() }
                 .filter { !it.isLoopbackAddress }
                 .joinToString("\n") { address -> "${address.hostAddress} (${if (address.address.size == 4) "IPv4" else "IPv6"})" }
         }.getOrElse { "دریافت IP ناموفق بود" }
@@ -97,7 +105,11 @@ private fun PublicIpScreen() {
                 connection.connectTimeout = 4_000
                 connection.readTimeout = 4_000
                 connection.requestMethod = "GET"
-                connection.inputStream.bufferedReader().use { it.readText().trim() }
+                try {
+                    connection.inputStream.bufferedReader().use { it.readText().trim() }
+                } finally {
+                    connection.disconnect()
+                }
             }.getOrElse { "دریافت IP عمومی ناموفق بود" }
         }
     }
@@ -179,7 +191,7 @@ private fun PortTestScreen() {
                     val portNumber = port.toIntOrNull()?.takeIf { it in 1..65535 } ?: return@withContext "پورت نامعتبر"
                     runCatching {
                         Socket().use { socket ->
-                            socket.connect(java.net.InetSocketAddress(host.trim(), portNumber), 3_000)
+                            socket.connect(InetSocketAddress(host.trim(), portNumber), 3_000)
                             "پورت $portNumber باز و قابل اتصال است"
                         }
                     }.getOrElse { "اتصال ناموفق: ${it.javaClass.simpleName}" }
@@ -201,4 +213,86 @@ private fun WifiInfoScreen() {
     ToolHeader("اطلاعات Wi-Fi", "بعضی فیلدها در نسخه‌های جدید Android بدون مجوز Location محدود می‌شوند.")
     ResultCard("SSID", info.ssid ?: "ناموجود")
     ResultCard("Signal", "${info.rssi} dBm", "Link speed: ${info.linkSpeed} Mbps | Frequency: ${info.frequency} MHz")
+}
+
+@Composable
+private fun WhoisScreen() {
+    var domain by remember { mutableStateOf("example.com") }
+    var result by remember { mutableStateOf("—") }
+    var working by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    ToolHeader("WHOIS", "پرس‌وجوی مستقیم TCP روی پورت 43؛ ممکن است برخی شبکه‌ها این پورت را مسدود کنند.")
+    OutlinedTextField(domain, { domain = it }, label = { Text("دامنه") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+    Button(
+        onClick = {
+            working = true
+            scope.launch {
+                result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        Socket().use { socket ->
+                            socket.connect(InetSocketAddress("whois.iana.org", 43), 4_000)
+                            socket.soTimeout = 4_000
+                            socket.getOutputStream().bufferedWriter().use { writer ->
+                                writer.write(domain.trim())
+                                writer.write("\r\n")
+                                writer.flush()
+                            }
+                            socket.getInputStream().bufferedReader().use { reader ->
+                                reader.readLines().take(40).joinToString("\n")
+                            }
+                        }
+                    }.getOrElse { "WHOIS ناموفق بود: ${it.javaClass.simpleName}" }
+                }
+                working = false
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !working && domain.isNotBlank(),
+    ) { Text(if (working) "در حال دریافت…" else "WHOIS") }
+    ResultCard("نتیجه", result)
+}
+
+@Composable
+private fun NetworkSpeedScreen() {
+    var downBps by remember { mutableLongStateOf(0L) }
+    var upBps by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        var lastRx = TrafficStats.getTotalRxBytes().coerceAtLeast(0L)
+        var lastTx = TrafficStats.getTotalTxBytes().coerceAtLeast(0L)
+        while (isActive) {
+            delay(1_000L)
+            val rx = TrafficStats.getTotalRxBytes().coerceAtLeast(lastRx)
+            val tx = TrafficStats.getTotalTxBytes().coerceAtLeast(lastTx)
+            downBps = rx - lastRx
+            upBps = tx - lastTx
+            lastRx = rx
+            lastTx = tx
+        }
+    }
+
+    ToolHeader("سرعت لحظه‌ای شبکه", "تغییر TrafficStats کل دستگاه در هر ثانیه؛ شامل ترافیک سایر برنامه‌ها نیز می‌شود.")
+    ResultCard("دانلود", formatRate(downBps), "آپلود: ${formatRate(upBps)}")
+}
+
+@Composable
+private fun DataUsageScreen() {
+    val rx = TrafficStats.getTotalRxBytes()
+    val tx = TrafficStats.getTotalTxBytes()
+    ToolHeader("مصرف داده", "TrafficStats از زمان بوت دستگاه؛ بسته به سازنده ممکن است unsupported باشد.")
+    ResultCard("دریافت", if (rx >= 0) formatBytes(rx) else "ناموجود", "ارسال: ${if (tx >= 0) formatBytes(tx) else "ناموجود"}")
+    if (rx >= 0 && tx >= 0) ResultCard("مجموع", formatBytes(rx + tx))
+}
+
+private fun formatRate(bytesPerSecond: Long): String = "${formatBytes(bytesPerSecond)}/s"
+
+private fun formatBytes(bytes: Long): String {
+    val value = bytes.coerceAtLeast(0L).toDouble()
+    return when {
+        value >= 1024 * 1024 * 1024 -> "%.2f GB".format(value / (1024 * 1024 * 1024))
+        value >= 1024 * 1024 -> "%.2f MB".format(value / (1024 * 1024))
+        value >= 1024 -> "%.2f KB".format(value / 1024)
+        else -> "$bytes B"
+    }
 }
