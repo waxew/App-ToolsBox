@@ -6,6 +6,13 @@
     <!-- Vibration is used only as short local feedback after a successful scan. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- v1.2 location tools request these permissions only when opened. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- v1.2 relative sound meter reads PCM locally and stores no audio file. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!-- Required only on Android 9 and older when saving QR images to Pictures. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -15,6 +22,8 @@
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
         android:allowBackup="true"
