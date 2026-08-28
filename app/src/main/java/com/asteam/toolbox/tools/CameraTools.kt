@@ -4,15 +4,20 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -34,7 +40,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -101,8 +109,12 @@ private fun ScannerCameraContent(onlyQr: Boolean, preferences: UserPreferences) 
     val lifecycleOwner = LocalLifecycleOwner.current
     var resultText by remember { mutableStateOf("") }
     var resultFormat by remember { mutableStateOf("") }
+    var resultType by remember { mutableStateOf("متن") }
     var lastSavedValue by remember { mutableStateOf("") }
     var lastSavedAt by remember { mutableStateOf(0L) }
+    var boundCamera by remember { mutableStateOf<Camera?>(null) }
+    var torchEnabled by remember { mutableStateOf(false) }
+
     val scanner = remember(onlyQr) {
         val options = if (onlyQr) {
             BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()
@@ -117,6 +129,30 @@ private fun ScannerCameraContent(onlyQr: Boolean, preferences: UserPreferences) 
             scaleType = PreviewView.ScaleType.FILL_CENTER
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         }
+    }
+
+    fun acceptBarcode(barcode: Barcode) {
+        val value = barcode.rawValue.orEmpty()
+        if (value.isBlank()) return
+        val format = barcodeFormatName(barcode.format)
+        resultText = value
+        resultFormat = format
+        resultType = barcodeValueTypeName(barcode.valueType, value)
+        val now = System.currentTimeMillis()
+        if (value != lastSavedValue || now - lastSavedAt > 2_000L) {
+            preferences.addScanHistory(value, format, now)
+            lastSavedValue = value
+            lastSavedAt = now
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { InputImage.fromFilePath(context, uri) }
+            .onSuccess { image ->
+                scanner.process(image)
+                    .addOnSuccessListener { barcodes -> barcodes.firstOrNull { !it.rawValue.isNullOrBlank() }?.let(::acceptBarcode) }
+            }
     }
 
     DisposableEffect(lifecycleOwner, scanner) {
@@ -138,30 +174,20 @@ private fun ScannerCameraContent(onlyQr: Boolean, preferences: UserPreferences) 
                 val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                 scanner.process(image)
                     .addOnSuccessListener { barcodes ->
-                        val barcode = barcodes.firstOrNull { !it.rawValue.isNullOrBlank() } ?: return@addOnSuccessListener
-                        val value = barcode.rawValue.orEmpty()
-                        val format = barcodeFormatName(barcode.format)
-                        resultText = value
-                        resultFormat = format
-
-                        val now = System.currentTimeMillis()
-                        if (value != lastSavedValue || now - lastSavedAt > 2_000L) {
-                            preferences.addScanHistory(value, format, now)
-                            lastSavedValue = value
-                            lastSavedAt = now
-                        }
+                        barcodes.firstOrNull { !it.rawValue.isNullOrBlank() }?.let(::acceptBarcode)
                     }
                     .addOnCompleteListener { imageProxy.close() }
             }
 
             runCatching {
                 provider.unbindAll()
-                provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
+                boundCamera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
             }
         }
         providerFuture.addListener(listener, ContextCompat.getMainExecutor(context))
 
         onDispose {
+            runCatching { boundCamera?.cameraControl?.enableTorch(false) }
             runCatching { providerFuture.get().unbindAll() }
             scanner.close()
             analysisExecutor.shutdown()
@@ -174,22 +200,60 @@ private fun ScannerCameraContent(onlyQr: Boolean, preferences: UserPreferences) 
     ) {
         ToolHeader(
             if (onlyQr) "اسکن QR" else "اسکن بارکد",
-            if (onlyQr) "QR را داخل کادر دوربین قرار دهید." else "QR و بارکدهای رایج به‌صورت زنده خوانده می‌شوند.",
+            if (onlyQr) "QR را داخل کادر قرار دهید یا تصویر آن را از گالری انتخاب کنید." else "QR و بارکدهای رایج را زنده یا از تصویر بخوانید.",
         )
         Card(modifier = Modifier.fillMaxWidth()) {
-            AndroidView(factory = { previewView }, modifier = Modifier.fillMaxWidth().height(340.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(340.dp), contentAlignment = Alignment.Center) {
+                AndroidView(factory = { previewView }, modifier = Modifier.fillMaxWidth().height(340.dp))
+                Box(
+                    modifier = Modifier
+                        .size(width = 230.dp, height = 180.dp)
+                        .border(2.dp, Color.White, MaterialTheme.shapes.medium),
+                )
+            }
         }
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = {
+                    val camera = boundCamera ?: return@Button
+                    if (!camera.cameraInfo.hasFlashUnit()) return@Button
+                    torchEnabled = !torchEnabled
+                    camera.cameraControl.enableTorch(torchEnabled)
+                },
+                enabled = boundCamera?.cameraInfo?.hasFlashUnit() == true,
+                modifier = Modifier.weight(1f),
+            ) { Text(if (torchEnabled) "خاموش کردن فلش" else "روشن کردن فلش") }
+            Button(onClick = { galleryLauncher.launch("image/*") }, modifier = Modifier.weight(1f)) {
+                Text("اسکن از گالری")
+            }
+        }
+
         ResultCard(
             title = "نتیجه اسکن",
             value = resultText.ifBlank { "در انتظار اسکن…" },
-            details = resultFormat.takeIf { it.isNotBlank() },
+            details = if (resultText.isBlank()) null else "$resultFormat | $resultType",
         )
         if (resultText.isNotBlank()) {
-            val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
+            ScannerResultActions(context = context, value = resultText)
+        }
+    }
+}
+
+@Composable
+private fun ScannerResultActions(context: Context, value: String) {
+    val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
+    val action = remember(value) { resolveScanAction(value) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(
+            onClick = { clipboard.setPrimaryClip(ClipData.newPlainText("scan-result", value)) },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("کپی نتیجه") }
+        action?.let { resolved ->
             Button(
-                onClick = { clipboard.setPrimaryClip(ClipData.newPlainText("scan-result", resultText)) },
+                onClick = { runCatching { context.startActivity(resolved.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("کپی نتیجه") }
+            ) { Text(resolved.label) }
         }
     }
 }
@@ -215,22 +279,42 @@ private fun ScanHistoryScreen(preferences: UserPreferences) {
                 onPrimary = { preferences.clearScanHistory(); revision++ },
             )
             items.forEach { item ->
-                ScanHistoryCard(item = item, formatter = formatter, onCopy = {
-                    clipboard.setPrimaryClip(ClipData.newPlainText("scan-history", item.value))
-                })
+                ScanHistoryCard(
+                    item = item,
+                    formatter = formatter,
+                    onCopy = { clipboard.setPrimaryClip(ClipData.newPlainText("scan-history", item.value)) },
+                    onDelete = { preferences.removeScanHistory(item); revision++ },
+                    onAction = resolveScanAction(item.value)?.let { resolved ->
+                        { runCatching { context.startActivity(resolved.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+                    },
+                    actionLabel = resolveScanAction(item.value)?.label,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ScanHistoryCard(item: ScanHistoryItem, formatter: SimpleDateFormat, onCopy: () -> Unit) {
+private fun ScanHistoryCard(
+    item: ScanHistoryItem,
+    formatter: SimpleDateFormat,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+    onAction: (() -> Unit)?,
+    actionLabel: String?,
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(item.format, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             Text(item.value, style = MaterialTheme.typography.bodyLarge)
             Text(formatter.format(Date(item.scannedAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Button(onClick = onCopy, modifier = Modifier.fillMaxWidth()) { Text("کپی") }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onCopy, modifier = Modifier.weight(1f)) { Text("کپی") }
+                Button(onClick = onDelete, modifier = Modifier.weight(1f)) { Text("حذف") }
+            }
+            if (onAction != null && actionLabel != null) {
+                Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) { Text(actionLabel) }
+            }
         }
     }
 }
@@ -253,7 +337,7 @@ private fun CameraPreviewContent(title: String, useFrontCamera: Boolean, enableZ
         }
     }
     var zoom by remember { mutableStateOf(1f) }
-    var boundCamera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+    var boundCamera by remember { mutableStateOf<Camera?>(null) }
 
     DisposableEffect(lifecycleOwner, useFrontCamera) {
         val providerFuture = ProcessCameraProvider.getInstance(context)
@@ -301,6 +385,45 @@ private fun CameraPreviewContent(title: String, useFrontCamera: Boolean, enableZ
             }
         }
     }
+}
+
+private data class ScanAction(val label: String, val intent: Intent)
+
+private fun resolveScanAction(value: String): ScanAction? {
+    val trimmed = value.trim()
+    return when {
+        trimmed.startsWith("http://", true) || trimmed.startsWith("https://", true) ->
+            ScanAction("باز کردن لینک", Intent(Intent.ACTION_VIEW, Uri.parse(trimmed)))
+        trimmed.startsWith("mailto:", true) ->
+            ScanAction("ارسال ایمیل", Intent(Intent.ACTION_SENDTO, Uri.parse(trimmed)))
+        trimmed.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) ->
+            ScanAction("ارسال ایمیل", Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$trimmed")))
+        trimmed.startsWith("tel:", true) ->
+            ScanAction("باز کردن شماره‌گیر", Intent(Intent.ACTION_DIAL, Uri.parse(trimmed)))
+        trimmed.matches(Regex("^[+0-9][0-9 ()-]{5,}$")) ->
+            ScanAction("باز کردن شماره‌گیر", Intent(Intent.ACTION_DIAL, Uri.parse("tel:${trimmed.replace(" ", "")}")))
+        trimmed.startsWith("geo:", true) ->
+            ScanAction("باز کردن نقشه", Intent(Intent.ACTION_VIEW, Uri.parse(trimmed)))
+        trimmed.startsWith("WIFI:", true) ->
+            ScanAction("تنظیمات Wi‑Fi", Intent(Settings.ACTION_WIFI_SETTINGS))
+        else -> null
+    }
+}
+
+private fun barcodeValueTypeName(valueType: Int, rawValue: String): String = when (valueType) {
+    Barcode.TYPE_URL -> "لینک"
+    Barcode.TYPE_EMAIL -> "ایمیل"
+    Barcode.TYPE_PHONE -> "شماره تلفن"
+    Barcode.TYPE_SMS -> "پیامک"
+    Barcode.TYPE_WIFI -> "Wi‑Fi"
+    Barcode.TYPE_GEO -> "موقعیت مکانی"
+    Barcode.TYPE_CONTACT_INFO -> "اطلاعات تماس"
+    Barcode.TYPE_CALENDAR_EVENT -> "رویداد تقویم"
+    Barcode.TYPE_DRIVER_LICENSE -> "گواهینامه"
+    Barcode.TYPE_ISBN -> "ISBN"
+    Barcode.TYPE_PRODUCT -> "محصول"
+    Barcode.TYPE_TEXT -> if (rawValue.startsWith("http", true)) "لینک" else "متن"
+    else -> "داده"
 }
 
 private fun barcodeFormatName(format: Int): String = when (format) {
