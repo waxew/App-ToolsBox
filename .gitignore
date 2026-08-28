@@ -1,0 +1,22 @@
+*.iml
+.gradle/
+.gradle-dist/
+.idea/
+local.properties
+.DS_Store
+/build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Private production signing material. Never commit these files.
+keystore.properties
+*.jks
+*.keystore
+signing/KEY_INFO.txt
+
+# Generated/release outputs
+*.apk
+*.aab
+distribution/private/
