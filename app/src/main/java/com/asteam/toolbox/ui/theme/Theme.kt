@@ -26,11 +26,17 @@ private val DarkColors = darkColorScheme(
     surfaceVariant = Color(0xFF253139),
 )
 
+/** themeMode accepts system, light or dark and is persisted by UserPreferences. */
 @Composable
 fun ToolsBoxTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: String = "system",
     content: @Composable () -> Unit,
 ) {
+    val darkTheme = when (themeMode) {
+        "dark" -> true
+        "light" -> false
+        else -> isSystemInDarkTheme()
+    }
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else LightColors,
         content = content,
