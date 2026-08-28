@@ -1,18 +1,16 @@
 # PROJECT_INFO
 
 ## Identity
-
 - Repository: `waxew/App-ToolsBox`
 - Application name: `جعبه ابزار`
 - Application ID: `com.asteam.toolbox`
 - Release alias: `app-toolsbox`
 - Version: `2.0.0 (11)`
-- Main tool count: `101`
+- Main tool count: `111`
 - Development group: `as Team`
 - Support: `AS.Support.info@gmail.com`
 
 ## Android baseline
-
 - Kotlin: `2.3.21`
 - Jetpack Compose BOM: `2026.08.00`
 - Android Gradle Plugin: `9.3.1`
@@ -23,56 +21,51 @@
 - minSdk: `26`
 
 ## Architecture
+Single-activity Compose application with stable tool IDs. `ToolCatalog` is the authoritative 111-tool catalog and `ToolRouter` dispatches to feature-oriented modules.
 
-Single-activity Compose application with stable tool IDs and feature-oriented modules. `ToolCatalog` is the authoritative catalog; `ToolRouter` routes each tool family to its implementation module.
+Feature modules include base calculations/converters, CameraX scanner, advanced QR, professional measurement/GPS/audio, advanced calculations, text/developer tools, network diagnostics, Persian/Jalali calendar tools, local reminder, backup/restore, widget and Quick Settings tile.
 
-Major modules now include:
+## Local data and personalization
+`UserPreferences` keeps profile data, favorites, counter, scanner history, theme mode, accent color, home layout, sort mode, card size, hidden tools, custom collection and recent tools. Existing keys are retained for update compatibility.
 
-- base calculations, converters, date/time and system tools
-- CameraX + bundled ML Kit scanner
-- professional QR generator
-- professional measurement/GPS/audio tools
-- advanced calculations
-- text/developer utilities
-- network diagnostics
-- Persian/Jalali date utilities
-- personalization preferences
-- JSON backup/restore
-- home-screen widget
-- Quick Settings flashlight tile
-
-## Local data
-
-`UserPreferences` stores profile data, favorites, persistent counter, scanner history, theme mode, home layout, hidden-tool IDs and recent-tool IDs. Stable keys preserve compatibility during normal updates.
-
-Backup format is a versioned JSON envelope. Profile image URI is intentionally excluded from portable backup because document-provider URIs are device-specific.
+Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile image URI remains outside portable backup because provider URIs are device-specific.
 
 ## Permissions
+- `CAMERA`: camera/scanner/flashlight tools.
+- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: GPS tools only.
+- `RECORD_AUDIO`: relative dBFS sound meter; no audio file is saved.
+- `POST_NOTIFICATIONS`: Android 13+ local reminder notification.
+- `INTERNET`, network-state and Wi-Fi-state: network diagnostic tools.
+- `VIBRATE`: short scanner feedback.
+- legacy external-storage write is capped at Android 9 for QR PNG saving.
 
-- `CAMERA`: requested at runtime by camera/scanner/flashlight tools.
-- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: requested only by GPS tools.
-- `RECORD_AUDIO`: requested only by the relative sound meter; no audio file is saved.
-- `INTERNET` / network-state permissions: used by network diagnostics; most app features remain offline-first.
-- `VIBRATE`: short local scanner feedback.
-- legacy storage permission is capped at Android 9 for QR PNG saving.
+## Accuracy / data-source rules
+- Display ruler accuracy depends on OEM DPI reporting.
+- Sound meter reports relative `dBFS`, not calibrated `dB SPL`.
+- GPS accuracy depends on device/environment.
+- Fixed solar Persian occasions are local; moving lunar holidays are not guessed without authoritative year-specific data.
+- Public IP uses `api.ipify.org`; WHOIS uses IANA TCP/43 and may be blocked by some networks.
+
+## Android integrations
+- Home-screen AppWidget has no background polling.
+- Quick Settings Tile controls flashlight when camera permission is already granted.
+- Reminder uses inexact `AlarmManager.setAndAllowWhileIdle`, avoiding exact-alarm special access.
 
 ## Update compatibility rules
-
 1. Never change `applicationId` after public release.
-2. Increase `versionCode` for every public build.
-3. Keep existing preference keys stable or migrate them explicitly.
-4. Never overwrite user data during a normal update.
-5. Future production updates must use the same release signing identity.
-6. Database/schema changes must have explicit migrations before release.
-7. Public GitHub must never contain the private `.jks`, passwords or real `keystore.properties`.
+2. Increase `versionCode` for each public build.
+3. Keep preference keys stable or migrate them explicitly.
+4. Never overwrite normal user data during update.
+5. Production updates must use the same signing identity.
+6. Database/schema changes require explicit migration.
+7. Public GitHub must never contain private `.jks`, passwords or real `keystore.properties`.
 
 ## Release checklist
-
 1. Run unit tests.
 2. Build debug APK.
 3. Build release APK/AAB.
-4. Test Back navigation and runtime permission gates.
-5. Test QR scanner/generator, GPS, sound meter, widget and Quick Settings tile on supported hardware.
-6. Verify signing certificate for production release.
-7. Update README, CHANGELOG, release notes and `distribution/version.json`.
-8. Produce owner-private source package with signing material only outside public Git.
+4. Test navigation/back behavior and permission gates.
+5. Test scanner/QR, GPS, audio, network, Jalali calendar/reminder, widget and tile on supported hardware.
+6. Verify production signing certificate.
+7. Update README, CHANGELOG, release notes and version metadata.
+8. Keep owner-private signing bundle outside public Git.
