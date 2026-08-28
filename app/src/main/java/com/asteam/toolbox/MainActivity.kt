@@ -21,8 +21,9 @@ class MainActivity : ComponentActivity() {
             val preferences = remember { UserPreferences(applicationContext) }
             var settingsRevision by remember { mutableIntStateOf(0) }
             val themeMode = remember(settingsRevision) { preferences.themeMode }
+            val accentColor = remember(settingsRevision) { preferences.accentColor }
 
-            ToolsBoxTheme(themeMode = themeMode) {
+            ToolsBoxTheme(themeMode = themeMode, accentColor = accentColor) {
                 ToolboxApp(
                     preferences = preferences,
                     onPreferencesChanged = { settingsRevision++ },
