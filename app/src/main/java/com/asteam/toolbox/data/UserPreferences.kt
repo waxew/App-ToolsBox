@@ -70,6 +70,14 @@ class UserPreferences(context: Context) {
         saveScanHistory(current.take(MAX_SCAN_HISTORY))
     }
 
+    /** Removes exactly one stored scan without affecting other history entries. */
+    fun removeScanHistory(item: ScanHistoryItem) {
+        val next = scanHistory().filterNot {
+            it.value == item.value && it.format == item.format && it.scannedAt == item.scannedAt
+        }
+        saveScanHistory(next)
+    }
+
     fun clearScanHistory() {
         prefs.edit().remove(KEY_SCAN_HISTORY).apply()
     }
