@@ -3,10 +3,8 @@ package com.asteam.toolbox.tools
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Base64
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.data.UserPreferences
@@ -36,8 +33,6 @@ import com.asteam.toolbox.ui.components.ActionRow
 import com.asteam.toolbox.ui.components.NumberField
 import com.asteam.toolbox.ui.components.ResultCard
 import com.asteam.toolbox.ui.components.ToolHeader
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.delay
 import java.security.MessageDigest
 import java.time.LocalDate
@@ -67,7 +62,7 @@ fun EverydayToolScreen(toolId: String, title: String, preferences: UserPreferenc
             "number_base" -> NumberBaseScreen()
             "clipboard" -> ClipboardScreen()
             "counter" -> CounterScreen(preferences)
-            "qr" -> QrScreen()
+            "qr" -> AdvancedQrScreen()
             else -> ToolHeader(title)
         }
     }
@@ -234,21 +229,6 @@ private fun CounterScreen(preferences: UserPreferences) {
     ToolHeader("شمارنده", "مقدار پس از بستن برنامه حفظ می‌شود"); ResultCard("مقدار", count.toString())
     ActionRow("+1", { save(count + 1) }, "−1", { save(count - 1) })
     Button(onClick = { save(0) }, modifier = Modifier.fillMaxWidth()) { Text("صفر") }
-}
-
-@Composable
-private fun QrScreen() {
-    var text by remember { mutableStateOf("https://github.com/waxew/App-ToolsBox") }; var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    ToolHeader("QR ساز", "QR کاملاً آفلاین ساخته می‌شود")
-    OutlinedTextField(text, { text = it }, label = { Text("متن یا لینک") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-    Button(onClick = { if (text.isNotBlank()) bitmap = runCatching { createQrBitmap(text, 700) }.getOrNull() }, modifier = Modifier.fillMaxWidth()) { Text("ساخت QR") }
-    bitmap?.let { Image(bitmap = it.asImageBitmap(), contentDescription = "QR", modifier = Modifier.fillMaxWidth()) }
-}
-
-private fun createQrBitmap(text: String, size: Int): Bitmap {
-    val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size); val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    for (x in 0 until size) for (y in 0 until size) bitmap.setPixel(x, y, if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
-    return bitmap
 }
 
 private fun formatMillis(value: Long): String {
