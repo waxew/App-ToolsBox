@@ -1,141 +1,134 @@
 # Changelog
 
-تمام تغییرات قابل‌توجه پروژه در این فایل ثبت می‌شوند. هر نسخه جدید باید قبل از انتشار، بخش مستقل خود را در این فایل داشته باشد.
+تمام تغییرات قابل‌توجه پروژه در این فایل ثبت می‌شوند. هر Release باید قبل از نهایی‌شدن در README، CHANGELOG و Release Notes مستند شود.
 
 ## 2.0.0 - 2026-08-29
 
-### Added
-- اضافه شدن خانواده محاسبات پیشرفته شامل سود مرکب، تغییر درصد، مالیات معکوس، تخفیف چندمرحله‌ای، حقوق خالص، اضافه‌کاری، سن دقیق پیشرفته، روزهای کاری، مساحت/حجم اشکال، فیثاغورس و معادله درجه‌دو.
-- اضافه شدن ب.م.م/ک.م.م، Unix Time و اعداد رومی.
-- اضافه شدن ابزارهای متن/توسعه: تبدیل ارقام، مرتب‌سازی خطوط، حذف تکراری‌ها، Case Converter، JSON Formatter، URL Codec، HTML Codec، UUID، Hash Suite، مقایسه متن، Slug، معکوس متن و شماره‌گذاری خطوط.
-- اضافه شدن ابزارهای شبکه: وضعیت اتصال، IP محلی، IP عمومی، DNS Lookup، Ping/Reachability، Port Test و اطلاعات Wi-Fi.
-- اضافه شدن ابزارهای تاریخ شمسی: امروز شمسی، تبدیل دوطرفه شمسی/میلادی، اختلاف تاریخ شمسی و روز هفته.
-- اضافه شدن Backup/Restore نسخه‌دار JSON با Storage Access Framework.
-- اضافه شدن Theme روشن/تیره/تابع سیستم و انتخاب Grid/List برای صفحه خانه.
-- اضافه شدن ذخیره ابزارهای اخیر و زیرساخت پایدار ابزارهای مخفی.
-- اضافه شدن Home-screen Widget برای نمایش تعداد ابزارها و علاقه‌مندی‌ها.
-- اضافه شدن Quick Settings Tile برای چراغ‌قوه.
-- افزایش کاتالوگ اصلی به 101 ابزار.
+### Added — Measurement
+- نمودار زنده 60 نمونه نور محیط.
+- جهت GPS با Bearing و سرعت حرکت.
+- ارتفاع‌سنج قابل کالیبراسیون با فشار مرجع سطح دریا.
+- حفظ ابزارهای v1.2: خط‌کش، نقاله، زاویه‌سنج، لرزش‌سنج، GPS Dashboard، Distance Tracker و dBFS Sound Meter.
+
+### Added — Advanced calculations
+- سود مرکب، تغییر درصد، مالیات معکوس و تخفیف چندمرحله‌ای.
+- محاسبه عمومی حقوق خالص و اضافه‌کاری با ورودی‌های قابل تنظیم.
+- سن دقیق پیشرفته، روزهای کاری، مساحت و حجم اشکال، فیثاغورس، معادله درجه‌دو و GCD/LCM.
+
+### Added — Text / Developer
+- تبدیل ارقام فارسی/عربی/انگلیسی.
+- مرتب‌سازی خطوط و حذف خطوط تکراری.
+- Case Converter: lower, upper, title, camel, snake, kebab.
+- JSON Formatter pretty/compact.
+- URL و HTML encode/decode.
+- UUID v4.
+- Hash Suite: MD5، SHA-1، SHA-256، SHA-512.
+- مقایسه متن، Roman Number، Slug، Reverse Text و Line Numbering.
+
+### Added — Network
+- وضعیت اتصال و Transport فعال.
+- Local IPv4/IPv6 و Public IP.
+- DNS Lookup و Reachability/Ping.
+- TCP Port Test با timeout.
+- Wi-Fi signal/link speed/frequency.
+- WHOIS مستقیم از IANA روی TCP/43.
+- سرعت لحظه‌ای دانلود/آپلود بر پایه TrafficStats کل دستگاه.
+- مصرف داده بر پایه TrafficStats از زمان Boot.
+
+### Added — Persian calendar / reminders
+- امروز شمسی.
+- تبدیل دوطرفه Gregorian/Jalali.
+- اختلاف تاریخ شمسی و Weekday finder.
+- تقویم ماهانه جلالی با هفته شنبه تا جمعه.
+- فهرست مناسبت‌های ثابت خورشیدی.
+- بررسی جمعه و تعطیلات ثابت خورشیدی.
+- Local Reminder با AlarmManager غیر Exact و اعلان محلی.
+
+### Added — Personalization
+- Theme: system / light / dark.
+- Accent colors: blue / green / orange / purple.
+- Home layout: grid / list.
+- Sort: catalog / title / recent.
+- Card size: compact / normal / large.
+- ابزارهای اخیر.
+- مخفی‌سازی ابزار و Restore همه ابزارهای مخفی.
+- «مجموعه من» مستقل از Favorites با فیلتر مستقیم خانه.
+
+### Added — Backup / Android integration
+- Backup JSON schema v2 با Import سازگار schema v1.
+- Backup شامل profile name، counter، theme، accent، layout، sort، card size، favorites، custom collection، hidden/recent tools و scan history.
+- Home-screen AppWidget بدون polling پس‌زمینه.
+- Quick Settings Tile برای flashlight.
+- Notification receiver داخلی برای Reminder.
 
 ### Changed
-- ارتقای نسخه از `1.2.0 / versionCode 3` به `2.0.0 / versionCode 11`.
-- `ToolRouter` به Router ماژولار برای خانواده‌های محاسبات پیشرفته، متن، شبکه، تاریخ شمسی، Backup و ابزارهای تکمیلی توسعه یافت.
-- `UserPreferences` با حفظ کلیدهای قبلی برای Theme، Layout، recent tools، hidden tools و Backup schema توسعه یافت.
-- Theme برنامه اکنون از تنظیم محلی `system/light/dark` پیروی می‌کند و بدون تغییر applicationId روی نسخه قبلی قابل نصب است.
-- صفحه خانه از Grid تطبیقی و List تک‌ستونه پشتیبانی می‌کند.
-- About برای معرفی مجموعه 100+ ابزاری به‌روزرسانی شد.
+- نسخه به `2.0.0 / versionCode 11` ارتقا یافت.
+- Catalog به **111 ابزار اصلی** رسید.
+- `ToolRouter` به dispatch ماژولار برای تمام خانواده‌های جدید توسعه یافت.
+- `UserPreferences` با حفظ کلیدهای قبلی برای شخصی‌سازی و Backup schema v2 توسعه یافت.
+- Theme و Accent در زمان اجرا بدون نیاز به restart کامل Activity از state Compose اعمال می‌شوند.
+- HomeScreen از Grid/List، sort، card sizes، favorites، custom collection و hide action پشتیبانی می‌کند.
+- QR Generator به‌طور مستقیم URL-to-QR را نیز پوشش می‌دهد.
 
-### Android Integration
-- Widget از `AppWidgetProvider` و `RemoteViews` استفاده می‌کند و polling پس‌زمینه ندارد.
-- Quick Settings flashlight tile با `TileService` اضافه شد.
-- Tile در صورت نبود CAMERA permission خود را unavailable نگه می‌دارد و Runtime Permission را دور نمی‌زند.
-
-### Network & Privacy
-- `INTERNET`، `ACCESS_NETWORK_STATE` و `ACCESS_WIFI_STATE` برای ابزارهای شبکه اضافه شدند.
-- Public IP فقط با یک درخواست HTTPS کوتاه به `api.ipify.org` خوانده می‌شود.
-- بیشتر ابزارها همچنان کاملاً آفلاین کار می‌کنند.
-- Backup فقط با انتخاب صریح کاربر ساخته یا خوانده می‌شود.
-- Profile image URI به دلیل device-specific بودن در Backup portable ذخیره نمی‌شود.
-- QR/Barcode همچنان روی دستگاه پردازش می‌شوند و صدا‌سنج هیچ فایل صوتی ذخیره نمی‌کند.
+### Privacy / Permissions
+- `POST_NOTIFICATIONS` برای Android 13+ Reminder اضافه شد و Runtime request فقط داخل ابزار مربوط انجام می‌شود.
+- Camera، Location و Microphone همچنان فقط برای قابلیت مرتبط درخواست/استفاده می‌شوند.
+- Reminder از exact-alarm special access استفاده نمی‌کند.
+- Sound Meter فایل صوتی ذخیره نمی‌کند.
+- Profile image URI در Backup portable ذخیره نمی‌شود.
+- Public IP یک HTTPS request کوتاه به `api.ipify.org` دارد؛ WHOIS ممکن است به دلیل مسدودبودن TCP/43 در بعضی شبکه‌ها در دسترس نباشد.
+- تعطیلات قمری متغیر بدون منبع رسمی سالانه به‌صورت حدسی در تقویم درج نمی‌شوند.
 
 ### Documentation
-- `README.md` برای 101 ابزار، شخصی‌سازی، Backup، Widget و Quick Tile بازنویسی شد.
-- `PROJECT_INFO.md` به نسخه `2.0.0 (11)` و معماری جدید به‌روزرسانی شد.
-- `distribution/version.json` به `2.0.0 / 11 / 101 tools` ارتقا یافت.
-- `distribution/release-notes-fa.md` برای نسخه 2.0.0 تکمیل شد.
+- README، PROJECT_INFO، CHANGELOG، Release Notes و `distribution/version.json` برای 2.0.0 / 111 tools همگام شدند.
 
 ## 1.2.0 - 2026-08-29
 
 ### Added
-- اضافه شدن خط‌کش مبتنی بر DPI نمایشگر با مقیاس میلی‌متر و سانتی‌متر.
-- اضافه شدن نقاله تعاملی ۰ تا ۱۸۰ درجه.
-- اضافه شدن زاویه‌سنج زنده Pitch/Roll با شتاب‌سنج.
-- اضافه شدن لرزش‌سنج نسبی با محاسبه شتاب دینامیکی و Peak.
-- اضافه شدن داشبورد GPS شامل سرعت، مختصات، ارتفاع و دقت موقعیت.
-- اضافه شدن مسافت‌سنج GPS با حذف حرکت‌های بسیار کوچک ناشی از jitter و پرش‌های غیرمنطقی.
-- اضافه شدن صدا‌سنج نسبی بر پایه PCM/RMS با نمایش dBFS و Peak.
-- اضافه شدن 7 ابزار جدید؛ تعداد ابزارهای اصلی از 54 به 61 رسید.
+- خط‌کش مبتنی بر DPI نمایشگر.
+- نقاله 0..180 درجه.
+- زاویه‌سنج Pitch/Roll.
+- لرزش‌سنج نسبی و Peak.
+- GPS dashboard برای speed/coordinates/altitude/accuracy.
+- GPS distance tracker با حذف jitter کوچک و پرش‌های غیرمنطقی.
+- Sound Meter با PCM/RMS و dBFS.
 
-### Changed
-- ارتقای نسخه از `1.1.0 / versionCode 2` به `1.2.0 / versionCode 3`.
-- Router ابزارها برای ماژول `ProfessionalMeasurementTools.kt` توسعه داده شد.
-- ابزار QR در Router مستقیماً به ماژول حرفه‌ای `AdvancedQrScreen` متصل شد.
-
-### Permissions & Privacy
-- `ACCESS_FINE_LOCATION` و `ACCESS_COARSE_LOCATION` فقط برای ابزارهای GPS و به‌صورت Runtime Request اضافه شدند.
-- `RECORD_AUDIO` فقط برای صدا‌سنج و به‌صورت Runtime Request اضافه شد.
-- هیچ فایل صوتی در صدا‌سنج ذخیره نمی‌شود؛ فقط RMS نمونه‌های PCM روی دستگاه محاسبه می‌شود.
-- GPS فقط هنگام باز بودن ابزار مربوط درخواست Update می‌کند و با خروج از صفحه Listener حذف می‌شود.
-- ابزارهای دیگر برنامه بدون Location و Microphone همچنان قابل استفاده هستند.
-
-### Accuracy Notes
-- خط‌کش بر پایه DPI گزارش‌شده توسط سازنده دستگاه است و جایگزین ابزار اندازه‌گیری کالیبره صنعتی نیست.
-- صدا‌سنج مقدار `dBFS` نسبی نمایش می‌دهد، نه `dB SPL` کالیبره‌شده.
-- دقت GPS و مسافت‌سنج وابسته به کیفیت سیگنال و سخت‌افزار دستگاه است.
-
-### Documentation
-- `README.md`، `PROJECT_INFO.md`، `CHANGELOG.md` و `distribution/version.json` برای نسخه 1.2.0 به‌روزرسانی شدند.
-- Release Notes فارسی نسخه 1.2.0 اضافه شد.
+### Changed / Privacy
+- نسخه `1.2.0 / versionCode 3`.
+- Runtime Location فقط برای GPS و Runtime Microphone فقط برای Sound Meter.
+- GPS listener هنگام خروج حذف می‌شود و هیچ فایل صوتی ذخیره نمی‌شود.
+- محدودیت‌های دقت DPI، GPS و dBFS در UI مستند شدند.
 
 ## 1.1.0 - 2026-08-29
 
 ### Added
-- اضافه شدن اسکن زنده QR با دوربین.
-- اضافه شدن اسکن بارکدهای رایج شامل EAN، UPC، Code 39، Code 93، Code 128، Data Matrix، PDF417، Aztec و QR.
-- اضافه شدن اسکن QR/Barcode از تصویر داخل گالری.
-- اضافه شدن کادر راهنمای اسکن روی Preview دوربین.
-- اضافه شدن کنترل روشن/خاموش کردن فلش داخل اسکنر در دستگاه‌های دارای Flash Unit.
-- اضافه شدن تشخیص نوع محتوای اسکن شامل لینک، ایمیل، شماره تلفن، Wi‑Fi، موقعیت مکانی، اطلاعات تماس، رویداد تقویم، ISBN، محصول و متن.
-- اضافه شدن اکشن هوشمند براساس محتوای اسکن: باز کردن لینک، شماره‌گیر، ایمیل، نقشه یا تنظیمات Wi‑Fi.
-- اضافه شدن تاریخچه محلی اسکن‌ها با نگه‌داری حداکثر 100 نتیجه اخیر.
-- اضافه شدن حذف تکی آیتم‌های تاریخچه و پاک‌سازی کامل تاریخچه.
-- اضافه شدن امکان کپی نتیجه اسکن و آیتم‌های تاریخچه.
-- اضافه شدن اکشن مستقیم از آیتم‌های تاریخچه برای لینک/شماره/ایمیل/Wi‑Fi/موقعیت.
-- اضافه شدن توقف خودکار اسکن پس از اولین تشخیص موفق برای جلوگیری از ثبت و پردازش تکراری.
-- اضافه شدن دکمه «اسکن مجدد» برای فعال‌سازی مجدد Scanner.
-- اضافه شدن بازخورد کوتاه صوتی و ویبره پس از تشخیص موفق.
-- اضافه شدن اشتراک مستقیم متن نتیجه اسکن.
-- اضافه شدن ابزار ذره‌بین با دوربین عقب و کنترل بزرگ‌نمایی 1×، 2× و 4×.
-- اضافه شدن ابزار آینه با دوربین جلویی.
-- اضافه شدن QR ساز حرفه‌ای با حالت‌های متن/لینک، Wi‑Fi، مخاطب vCard، تلفن، SMS و Email.
-- اضافه شدن ذخیره QR به‌صورت PNG در گالری دستگاه.
-- اضافه شدن اشتراک مستقیم تصویر QR با FileProvider امن.
-- اضافه شدن اشتراک متن خام QR و کپی محتوای QR.
-- اضافه شدن CameraX برای Preview و ImageAnalysis.
-- اضافه شدن ML Kit Barcode Scanning با مدل Bundled برای پردازش روی دستگاه.
-- اضافه شدن 5 ابزار جدید؛ تعداد ابزارهای فهرست اصلی از 49 به 54 رسید.
+- QR Scanner و Barcode Scanner با CameraX و bundled ML Kit.
+- اسکن از Gallery، scan guide، flash control، content detection و smart actions.
+- توقف خودکار بعد از اولین تشخیص، «اسکن مجدد»، beep/vibration و share result.
+- تاریخچه محلی تا 100 نتیجه با حذف تکی/کامل.
+- Magnifier و Mirror.
+- QR Generator حرفه‌ای برای text/link، Wi-Fi، vCard، phone، SMS و email.
+- ذخیره QR PNG، FileProvider share و payload copy/share.
 
-### Changed
-- نسخه برنامه از `1.0.0 / versionCode 1` به `1.1.0 / versionCode 2` ارتقا یافت.
-- Router ابزارها برای پشتیبانی از ماژول دوربین و Scanner نهایی توسعه داده شد.
-- `UserPreferences` برای ذخیره و حذف انتخابی تاریخچه اسکن توسعه داده شد.
-- QR Generator اولیه با ماژول مستقل `QrTools.kt` جایگزین شد.
-- پردازش زنده Scanner در حالت Pause متوقف می‌شود تا مصرف CPU و باتری کاهش یابد.
-
-### Privacy
-- `CAMERA` فقط هنگام استفاده ابزار مربوط درخواست می‌شود.
-- `VIBRATE` فقط برای بازخورد کوتاه Scanner استفاده می‌شود.
-- `WRITE_EXTERNAL_STORAGE` فقط تا Android 9 و برای ذخیره PNG تعریف شده است.
-- پردازش QR/Barcode و تاریخچه اسکن روی دستگاه انجام می‌شود.
-- اشتراک فایل QR فقط از cache محدود با FileProvider انجام می‌شود.
+### Changed / Privacy
+- نسخه `1.1.0 / versionCode 2` و تعداد ابزارها 54.
+- Scanner در pause پردازش frame را متوقف می‌کند.
+- QR/Barcode روی دستگاه پردازش می‌شوند.
+- Legacy write storage فقط maxSdk 28 برای QR PNG.
 
 ## 1.0.0 - 2026-08-28
 
 ### Added
-- ایجاد پروژه Android با Kotlin و Jetpack Compose.
-- رابط فارسی RTL، جستجو، فیلتر دسته‌بندی، Grid تطبیقی و علاقه‌مندی‌ها.
-- Drawer سمت راست با پروفایل محلی، صفحات تنظیمات، درباره و ارتباط با ما.
-- 49 ابزار پایه در شش گروه اصلی.
-- ابزارهای سنسوری، محاسباتی، تبدیل واحد، زمان/تاریخ، دیجیتال و اطلاعات سیستم.
-- ذخیره محلی تنظیمات، پروفایل، علاقه‌مندی‌ها و شمارنده.
-- Release Signing configuration با خارج نگه‌داشتن کلید خصوصی از Git عمومی.
-- Unit Test برای Expression Evaluator.
-- GitHub Actions برای Unit Test، Debug APK، Release APK و بسته‌بندی سورس.
+- پروژه Kotlin + Jetpack Compose با Material 3 و RTL فارسی.
+- 49 ابزار پایه در measurement، calculation، conversion، time/date، digital و system.
+- Search، category filter، adaptive grid، Favorites و Drawer سمت راست.
+- پروفایل محلی، Settings، About و Contact.
+- SharedPreferences برای داده‌های محلی.
+- Release signing configuration بدون Commit کلید خصوصی.
+- Expression Evaluator unit test.
+- GitHub Actions برای tests، debug APK، release APK و source snapshot.
 
 ### Changed
-- Back navigation اصلاح شد تا صفحات داخلی ابتدا به صفحه قبلی برگردند.
-- About بدون نمایش Package Name کاربرپسند شد.
-- ساختار Update-friendly با applicationId ثابت و حفظ داده‌های محلی تعریف شد.
-
-### Documentation
-- `PROJECT_INFO.md`، `distribution/version.json`، Release Notes و راهنمای Signing اضافه شدند.
+- Back navigation داخلی قبل از خروج.
+- About بدون نمایش Package Name.
+- applicationId ثابت و ساختار Update-friendly برای حفظ داده در آپدیت عادی.
