@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -46,21 +45,34 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToolboxApp() {
+fun ToolboxApp(
+    preferences: UserPreferences,
+    onPreferencesChanged: () -> Unit = {},
+) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        val context = LocalContext.current
-        val preferences = remember { UserPreferences(context.applicationContext) }
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
         var activeDestination by remember { mutableStateOf(DrawerDestination.HOME) }
         var activeTool by remember { mutableStateOf<ToolItem?>(null) }
         var preferenceRevision by remember { mutableIntStateOf(0) }
         val favorites = remember(preferenceRevision) { preferences.favorites() }
+        val hiddenTools = remember(preferenceRevision) { preferences.hiddenTools() }
+        val homeLayout = remember(preferenceRevision) { preferences.homeLayout }
+
+        fun notifyPreferencesChanged() {
+            preferenceRevision++
+            onPreferencesChanged()
+        }
 
         fun navigate(destination: DrawerDestination) {
             activeTool = null
             activeDestination = destination
             scope.launch { drawerState.close() }
+        }
+
+        fun openTool(tool: ToolItem) {
+            preferences.markToolOpened(tool.id)
+            activeTool = tool
         }
 
         BackHandler(enabled = drawerState.isOpen || activeTool != null || activeDestination != DrawerDestination.HOME) {
@@ -79,7 +91,7 @@ fun ToolboxApp() {
                         preferences = preferences,
                         active = activeDestination,
                         onDestination = ::navigate,
-                        onProfileChanged = { preferenceRevision++ },
+                        onProfileChanged = ::notifyPreferencesChanged,
                     )
                 }
             },
@@ -121,18 +133,23 @@ fun ToolboxApp() {
                     } else {
                         when (activeDestination) {
                             DrawerDestination.HOME -> HomeScreen(
-                                tools = ToolCatalog.tools,
+                                tools = ToolCatalog.tools.filterNot { it.id in hiddenTools },
                                 favorites = favorites,
-                                onOpenTool = { activeTool = it },
-                                onToggleFavorite = { preferences.toggleFavorite(it.id); preferenceRevision++ },
+                                layoutMode = homeLayout,
+                                onOpenTool = ::openTool,
+                                onToggleFavorite = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() },
                             )
                             DrawerDestination.FAVORITES -> HomeScreen(
-                                tools = ToolCatalog.tools.filter { it.id in favorites },
+                                tools = ToolCatalog.tools.filter { it.id in favorites && it.id !in hiddenTools },
                                 favorites = favorites,
-                                onOpenTool = { activeTool = it },
-                                onToggleFavorite = { preferences.toggleFavorite(it.id); preferenceRevision++ },
+                                layoutMode = homeLayout,
+                                onOpenTool = ::openTool,
+                                onToggleFavorite = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() },
                             )
-                            DrawerDestination.SETTINGS -> SettingsScreen()
+                            DrawerDestination.SETTINGS -> SettingsScreen(
+                                preferences = preferences,
+                                onChanged = ::notifyPreferencesChanged,
+                            )
                             DrawerDestination.ABOUT -> AboutScreen()
                             DrawerDestination.CONTACT -> ContactScreen()
                         }
