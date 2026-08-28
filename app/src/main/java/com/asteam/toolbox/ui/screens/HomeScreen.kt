@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.data.ToolCategory
 import com.asteam.toolbox.data.ToolItem
@@ -53,11 +54,13 @@ fun HomeScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ToolCategory?>(null) }
+    var customOnly by remember { mutableStateOf(false) }
 
     val filtered = tools.filter { tool ->
         val categoryMatches = selectedCategory == null || tool.category == selectedCategory
         val queryMatches = query.isBlank() || tool.title.contains(query, true) || tool.subtitle.contains(query, true)
-        categoryMatches && queryMatches
+        val collectionMatches = !customOnly || tool.id in customCollection
+        categoryMatches && queryMatches && collectionMatches
     }
     val recentIndex = remember(recentTools) { recentTools.withIndex().associate { it.value to it.index } }
     val visibleTools = when (sortMode) {
@@ -90,12 +93,25 @@ fun HomeScreen(
         )
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item { FilterChip(selected = selectedCategory == null, onClick = { selectedCategory = null }, label = { Text("همه") }) }
+            item {
+                FilterChip(
+                    selected = !customOnly && selectedCategory == null,
+                    onClick = { customOnly = false; selectedCategory = null },
+                    label = { Text("همه") },
+                )
+            }
+            item {
+                FilterChip(
+                    selected = customOnly,
+                    onClick = { customOnly = true; selectedCategory = null },
+                    label = { Text("مجموعه من") },
+                )
+            }
             items(ToolCategory.entries.size) { index ->
                 val category = ToolCategory.entries[index]
                 FilterChip(
-                    selected = selectedCategory == category,
-                    onClick = { selectedCategory = category },
+                    selected = !customOnly && selectedCategory == category,
+                    onClick = { customOnly = false; selectedCategory = category },
                     label = { Text(category.title) },
                 )
             }
@@ -134,7 +150,7 @@ private fun ToolCard(
     tool: ToolItem,
     favorite: Boolean,
     inCustomCollection: Boolean,
-    padding: androidx.compose.ui.unit.Dp,
+    padding: Dp,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleCustom: () -> Unit,
