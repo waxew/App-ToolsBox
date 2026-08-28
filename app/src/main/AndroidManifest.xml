@@ -3,6 +3,9 @@
     <!-- Camera is requested at runtime only by tools that need it. -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Vibration is used only as short local feedback after a successful scan. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- Required only on Android 9 and older when saving QR images to Pictures. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
