@@ -4,10 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -61,9 +57,8 @@ private val fixedSolarOccasions = mapOf(
 private fun JalaliTodayScreen() {
     val today = LocalDate.now()
     val j = gregorianToJalali(today.year, today.monthValue, today.dayOfMonth)
-    val weekday = today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("fa"))
     ToolHeader("امروز شمسی", "تبدیل محلی و بدون اینترنت")
-    ResultCard("تاریخ", "${j.day} ${jalaliMonthNames[j.month - 1]} ${j.year}", weekday)
+    ResultCard("تاریخ", "${j.day} ${jalaliMonthNames[j.month - 1]} ${j.year}", today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("fa")))
     ResultCard("میلادی", today.toString())
 }
 
@@ -124,8 +119,9 @@ private fun JalaliMonthScreen() {
     var month by remember { mutableStateOf(current.month) }
     val days = jalaliMonthLength(year, month)
     val firstGregorian = jalaliToGregorian(year, month, 1).let { LocalDate.of(it.year, it.month, it.day) }
-    val saturdayOffset = ((firstGregorian.dayOfWeek.value + 1) % 7)
-    val cells = List(saturdayOffset) { "" } + (1..days).map(Int::toString)
+    val saturdayOffset = (firstGregorian.dayOfWeek.value + 1) % 7
+    val cells = (List(saturdayOffset) { "" } + (1..days).map(Int::toString)).toMutableList()
+    while (cells.size % 7 != 0) cells.add("")
 
     ToolHeader("تقویم شمسی ماهانه", "چیدمان هفته از شنبه تا جمعه")
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -133,9 +129,13 @@ private fun JalaliMonthScreen() {
         Button(onClick = { if (month == 12) { month = 1; year++ } else month++ }, modifier = Modifier.weight(1f)) { Text("ماه بعد") }
     }
     ResultCard("ماه", "${jalaliMonthNames[month - 1]} $year")
-    Text("ش     ی     د     س     چ     پ     ج")
-    LazyVerticalGrid(columns = GridCells.Fixed(7), modifier = Modifier.fillMaxWidth().height(260.dp)) {
-        items(cells) { day -> Text(day, modifier = Modifier.weight(1f)) }
+    Row(modifier = Modifier.fillMaxWidth()) {
+        listOf("ش", "ی", "د", "س", "چ", "پ", "ج").forEach { Text(it, modifier = Modifier.weight(1f)) }
+    }
+    cells.chunked(7).forEach { week ->
+        Row(modifier = Modifier.fillMaxWidth()) {
+            week.forEach { day -> Text(day, modifier = Modifier.weight(1f)) }
+        }
     }
 }
 
@@ -156,10 +156,9 @@ private fun HolidayCheckerScreen() {
             require(p.size == 3)
             val date = parseJalali(input)
             val occasion = fixedSolarOccasions[Pair(p[1], p[2])]
-            val friday = date.dayOfWeek == DayOfWeek.FRIDAY
             when {
                 occasion != null -> "تعطیل/مناسبت: $occasion"
-                friday -> "جمعه — تعطیل هفتگی"
+                date.dayOfWeek == DayOfWeek.FRIDAY -> "جمعه — تعطیل هفتگی"
                 else -> "در فهرست ثابت تعطیلات شمسی نیست"
             }
         }.getOrElse { "تاریخ نامعتبر" }
