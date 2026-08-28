@@ -3,7 +3,12 @@ package com.asteam.toolbox
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
+import com.asteam.toolbox.data.UserPreferences
 import com.asteam.toolbox.ui.ToolboxApp
 import com.asteam.toolbox.ui.theme.ToolsBoxTheme
 
@@ -13,7 +18,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            ToolsBoxTheme { ToolboxApp() }
+            val preferences = remember { UserPreferences(applicationContext) }
+            var settingsRevision by remember { mutableIntStateOf(0) }
+            val themeMode = remember(settingsRevision) { preferences.themeMode }
+
+            ToolsBoxTheme(themeMode = themeMode) {
+                ToolboxApp(
+                    preferences = preferences,
+                    onPreferencesChanged = { settingsRevision++ },
+                )
+            }
         }
     }
 }
