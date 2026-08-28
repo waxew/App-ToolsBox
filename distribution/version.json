@@ -2,11 +2,12 @@
   "appName": "App-ToolsBox",
   "displayName": "جعبه ابزار",
   "applicationId": "com.asteam.toolbox",
-  "versionName": "1.2.0",
-  "versionCode": 3,
+  "versionName": "2.0.0",
+  "versionCode": 11,
+  "toolCount": 101,
   "minSdk": 26,
   "targetSdk": 36,
   "compileSdk": 37,
   "releasedAt": "2026-08-29",
-  "channel": "feature"
+  "channel": "major"
 }
