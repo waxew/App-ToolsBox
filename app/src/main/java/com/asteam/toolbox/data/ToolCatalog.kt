@@ -2,21 +2,11 @@ package com.asteam.toolbox.data
 
 /** Logical groups shown on the home page. Stable ids keep favorites compatible across updates. */
 enum class ToolCategory(val title: String) {
-    MEASUREMENT("اندازه‌گیری"),
-    CALCULATION("محاسبات"),
-    CONVERSION("تبدیل واحد"),
-    TIME_DATE("زمان و تاریخ"),
-    DIGITAL("دیجیتال"),
-    SYSTEM("سیستم"),
+    MEASUREMENT("اندازه‌گیری"), CALCULATION("محاسبات"), CONVERSION("تبدیل واحد"),
+    TIME_DATE("زمان و تاریخ"), DIGITAL("دیجیتال"), SYSTEM("سیستم"),
 }
 
-data class ToolItem(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val category: ToolCategory,
-    val symbol: String,
-)
+data class ToolItem(val id: String, val title: String, val subtitle: String, val category: ToolCategory, val symbol: String)
 
 object ToolCatalog {
     val tools = listOf(
@@ -38,6 +28,9 @@ object ToolCatalog {
         ToolItem("gps_dashboard", "داشبورد GPS", "سرعت، مختصات و ارتفاع", ToolCategory.MEASUREMENT, "GPS"),
         ToolItem("distance_tracker", "مسافت‌سنج GPS", "جمع مسافت حرکت", ToolCategory.MEASUREMENT, "↔"),
         ToolItem("sound_meter", "صدا‌سنج", "شدت نسبی dBFS", ToolCategory.MEASUREMENT, "dB"),
+        ToolItem("light_graph", "نمودار نور", "۶۰ نمونه زنده Lux", ToolCategory.MEASUREMENT, "☀↗"),
+        ToolItem("gps_heading", "جهت GPS", "Bearing و جهت حرکت", ToolCategory.MEASUREMENT, "GPS°"),
+        ToolItem("calibrated_altimeter", "ارتفاع‌سنج کالیبره", "تنظیم فشار سطح دریا", ToolCategory.MEASUREMENT, "△+"),
 
         ToolItem("calculator", "ماشین‌حساب علمی", "عبارت و توابع علمی", ToolCategory.CALCULATION, "ƒx"),
         ToolItem("percentage", "درصد", "محاسبات درصد", ToolCategory.CALCULATION, "%"),
@@ -83,6 +76,10 @@ object ToolCatalog {
         ToolItem("date_converter_fa", "تبدیل شمسی/میلادی", "دوطرفه و آفلاین", ToolCategory.TIME_DATE, "↔ش"),
         ToolItem("jalali_diff", "اختلاف تاریخ شمسی", "فاصله روزها", ToolCategory.TIME_DATE, "شΔ"),
         ToolItem("weekday_finder", "روز هفته", "برای تاریخ شمسی", ToolCategory.TIME_DATE, "روز"),
+        ToolItem("jalali_calendar", "تقویم شمسی", "نمای ماهانه جلالی", ToolCategory.TIME_DATE, "ماه"),
+        ToolItem("persian_occasions", "مناسبت‌های شمسی", "مناسبت‌های ثابت خورشیدی", ToolCategory.TIME_DATE, "★"),
+        ToolItem("holiday_checker", "بررسی تعطیلی", "جمعه و تعطیلات ثابت", ToolCategory.TIME_DATE, "تع"),
+        ToolItem("local_reminder", "یادآور محلی", "اعلان بدون اینترنت", ToolCategory.TIME_DATE, "⏰"),
         ToolItem("unix_time", "Unix Time", "Timestamp و تاریخ", ToolCategory.TIME_DATE, "UTC"),
 
         ToolItem("random", "عدد تصادفی", "عدد در بازه", ToolCategory.DIGITAL, "#"),
@@ -95,7 +92,7 @@ object ToolCatalog {
         ToolItem("number_base", "مبنای عدد", "Bin/Dec/Hex", ToolCategory.DIGITAL, "01"),
         ToolItem("clipboard", "کلیپ‌بورد", "مشاهده و کپی", ToolCategory.DIGITAL, "▣"),
         ToolItem("counter", "شمارنده", "شمارنده دائمی", ToolCategory.DIGITAL, "+1"),
-        ToolItem("qr", "QR ساز", "QR حرفه‌ای", ToolCategory.DIGITAL, "▦"),
+        ToolItem("qr", "QR ساز", "QR حرفه‌ای و URL-to-QR", ToolCategory.DIGITAL, "▦"),
         ToolItem("qr_scanner", "اسکن QR", "اسکن زنده", ToolCategory.DIGITAL, "⌗"),
         ToolItem("barcode_scanner", "اسکن بارکد", "بارکدهای رایج", ToolCategory.DIGITAL, "▥"),
         ToolItem("scan_history", "تاریخچه اسکن", "۱۰۰ اسکن اخیر", ToolCategory.DIGITAL, "≡"),
@@ -126,5 +123,8 @@ object ToolCatalog {
         ToolItem("ping_host", "Ping", "Reachability", ToolCategory.SYSTEM, "PING"),
         ToolItem("port_test", "Port Test", "اتصال TCP", ToolCategory.SYSTEM, "TCP"),
         ToolItem("wifi_info", "اطلاعات Wi-Fi", "Signal/Speed/Frequency", ToolCategory.SYSTEM, "WiFi"),
+        ToolItem("whois_lookup", "WHOIS", "اطلاعات ثبت دامنه", ToolCategory.SYSTEM, "WHO"),
+        ToolItem("network_speed", "سرعت شبکه", "دانلود/آپلود لحظه‌ای", ToolCategory.SYSTEM, "↕"),
+        ToolItem("data_usage", "مصرف داده", "TrafficStats دستگاه", ToolCategory.SYSTEM, "DATA"),
     )
 }
