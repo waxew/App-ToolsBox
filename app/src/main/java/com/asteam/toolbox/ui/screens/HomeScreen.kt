@@ -38,6 +38,7 @@ import com.asteam.toolbox.data.ToolItem
 fun HomeScreen(
     tools: List<ToolItem>,
     favorites: Set<String>,
+    layoutMode: String = "grid",
     onOpenTool: (ToolItem) -> Unit,
     onToggleFavorite: (ToolItem) -> Unit,
 ) {
@@ -88,7 +89,7 @@ fun HomeScreen(
         )
 
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 156.dp),
+            columns = if (layoutMode == "list") GridCells.Fixed(1) else GridCells.Adaptive(minSize = 156.dp),
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
