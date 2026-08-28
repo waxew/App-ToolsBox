@@ -1,15 +1,37 @@
 # Changelog
 
+تمام تغییرات قابل‌توجه پروژه در این فایل ثبت می‌شوند. هر نسخه جدید باید قبل از انتشار، بخش مستقل خود را در این فایل داشته باشد.
+
 ## 1.0.0 - 2026-08-28
 
-- Initial Kotlin/Jetpack Compose application.
-- Added 48+ offline-first tools in six categories.
-- Added Persian RTL home with search and category filtering.
-- Added persistent favorites.
-- Added updated right-side hamburger drawer.
-- Added circular editable local profile image and display name.
-- Added About, Contact and Settings pages.
-- Added back-navigation behavior that returns to the previous app screen instead of exiting from tool pages.
-- Added release signing configuration with private-key exclusion from Git.
-- Added unit tests for the scientific expression evaluator.
-- Added GitHub Actions Android build workflow.
+### Added
+- ایجاد پروژه اصلی Android با Kotlin و Jetpack Compose.
+- اضافه شدن رابط فارسی و RTL با Material 3.
+- اضافه شدن جستجوی ابزارها و فیلتر دسته‌بندی.
+- اضافه شدن Grid تطبیقی ابزارها.
+- اضافه شدن علاقه‌مندی‌های دائمی.
+- اضافه شدن Drawer جدید سمت راست با پروفایل محلی، تصویر دایره‌ای و نام کاربر.
+- اضافه شدن صفحات تنظیمات، درباره نرم‌افزار و ارتباط با ما.
+- اضافه شدن 49 ابزار پایه در شش گروه اصلی.
+- اضافه شدن ابزارهای سنسوری شامل قطب‌نما، تراز، نورسنج، میدان مغناطیسی، فشارسنج، ارتفاع‌سنج تقریبی، شتاب‌سنج، ژیروسکوپ و چراغ‌قوه.
+- اضافه شدن ابزارهای محاسباتی شامل ماشین‌حساب علمی، درصد، تخفیف، مالیات، سود، وام و قسط، BMI، BMR، تقسیم صورتحساب/انعام و ساده‌سازی نسبت.
+- اضافه شدن تبدیل واحد طول، جرم، دما، مساحت، حجم، سرعت، زمان، حجم داده، فشار، انرژی و زاویه.
+- اضافه شدن کرنومتر، تایمر، محاسبه سن و اختلاف تاریخ.
+- اضافه شدن عدد تصادفی، تاس، شیر یا خط، رمزساز، Base64، SHA-256، شمارش متن، تبدیل مبنای عدد، کلیپ‌بورد، شمارنده دائمی و QR Generator آفلاین.
+- اضافه شدن نمایش اطلاعات باتری، فضای ذخیره‌سازی، مشخصات دستگاه و لیست سنسورها.
+- اضافه شدن ذخیره محلی تنظیمات، پروفایل، علاقه‌مندی‌ها و شمارنده.
+- اضافه شدن Release Signing configuration با خارج نگه‌داشتن کلید خصوصی از Git عمومی.
+- اضافه شدن Unit Test برای Expression Evaluator ماشین‌حساب علمی.
+- اضافه شدن GitHub Actions برای Unit Test، Debug APK، Release APK و بسته‌بندی سورس.
+
+### Changed
+- رفتار دکمه Back اصلاح شد تا در صفحات داخلی ابتدا به صفحه قبلی برنامه برگردد و مستقیماً برنامه بسته نشود.
+- صفحه About به‌صورت کاربرپسند طراحی شد و Package Name در UI نمایش داده نمی‌شود.
+- ساختار پروژه به‌صورت Update-friendly نگه‌داری شد تا نسخه‌های جدید روی نسخه قبلی نصب شوند و داده‌های محلی عادی حفظ شوند.
+
+### Documentation
+- اضافه شدن `PROJECT_INFO.md`.
+- اضافه شدن `distribution/version.json`.
+- اضافه شدن `distribution/release-notes-fa.md`.
+- اضافه شدن راهنمای Signing.
+- تعریف قانون جدید: از نسخه‌های بعد، هیچ Release بدون به‌روزرسانی README، CHANGELOG و Release Notes نهایی نمی‌شود.
