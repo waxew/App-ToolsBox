@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -93,7 +92,9 @@ fun DrawerContent(
                 val bitmap = remember(profileUri) {
                     profileUri?.let { value ->
                         runCatching {
-                            context.contentResolver.openInputStream(Uri.parse(value))?.use(BitmapFactory::decodeStream)
+                            context.contentResolver.openInputStream(Uri.parse(value))?.use { input ->
+                                BitmapFactory.decodeStream(input)
+                            }
                         }.getOrNull()
                     }
                 }
