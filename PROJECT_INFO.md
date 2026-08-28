@@ -6,7 +6,8 @@
 - Application name: `جعبه ابزار`
 - Application ID: `com.asteam.toolbox`
 - Release alias: `app-toolsbox`
-- Version: `1.2.0 (3)`
+- Version: `2.0.0 (11)`
+- Main tool count: `101`
 - Development group: `as Team`
 - Support: `AS.Support.info@gmail.com`
 
@@ -23,32 +24,55 @@
 
 ## Architecture
 
-Single-activity Compose app. Tools use stable ids in `ToolCatalog` and are routed to feature families under `tools/`. Profile, favorites, counter and scan history are stored locally by `UserPreferences`.
+Single-activity Compose application with stable tool IDs and feature-oriented modules. `ToolCatalog` is the authoritative catalog; `ToolRouter` routes each tool family to its implementation module.
 
-### v1.2 measurement modules
-- display-based ruler and interactive protractor
-- live accelerometer angle meter
-- vibration meter
-- GPS dashboard and distance tracker
-- relative on-device sound meter (dBFS)
+Major modules now include:
 
-Location and microphone permissions are runtime-gated and only required when those specific tools are opened.
+- base calculations, converters, date/time and system tools
+- CameraX + bundled ML Kit scanner
+- professional QR generator
+- professional measurement/GPS/audio tools
+- advanced calculations
+- text/developer utilities
+- network diagnostics
+- Persian/Jalali date utilities
+- personalization preferences
+- JSON backup/restore
+- home-screen widget
+- Quick Settings flashlight tile
+
+## Local data
+
+`UserPreferences` stores profile data, favorites, persistent counter, scanner history, theme mode, home layout, hidden-tool IDs and recent-tool IDs. Stable keys preserve compatibility during normal updates.
+
+Backup format is a versioned JSON envelope. Profile image URI is intentionally excluded from portable backup because document-provider URIs are device-specific.
+
+## Permissions
+
+- `CAMERA`: requested at runtime by camera/scanner/flashlight tools.
+- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: requested only by GPS tools.
+- `RECORD_AUDIO`: requested only by the relative sound meter; no audio file is saved.
+- `INTERNET` / network-state permissions: used by network diagnostics; most app features remain offline-first.
+- `VIBRATE`: short local scanner feedback.
+- legacy storage permission is capped at Android 9 for QR PNG saving.
 
 ## Update compatibility rules
 
-1. Do not change `applicationId` after public release.
+1. Never change `applicationId` after public release.
 2. Increase `versionCode` for every public build.
-3. Keep existing preference keys stable or migrate them.
+3. Keep existing preference keys stable or migrate them explicitly.
 4. Never overwrite user data during a normal update.
-5. Back up the Production signing key; future updates must use the same signing identity.
-6. Add explicit migrations before changing any future database schema.
+5. Future production updates must use the same release signing identity.
+6. Database/schema changes must have explicit migrations before release.
+7. Public GitHub must never contain the private `.jks`, passwords or real `keystore.properties`.
 
 ## Release checklist
 
 1. Run unit tests.
-2. Build and test the debug APK.
-3. Test navigation/back behavior and permission-gated tools.
-4. Build the signed release APK/AAB with the owner keystore.
-5. Verify certificate fingerprints.
-6. Update README, CHANGELOG, release notes and `distribution/version.json`.
-7. Keep `.jks`, passwords and `keystore.properties` private.
+2. Build debug APK.
+3. Build release APK/AAB.
+4. Test Back navigation and runtime permission gates.
+5. Test QR scanner/generator, GPS, sound meter, widget and Quick Settings tile on supported hardware.
+6. Verify signing certificate for production release.
+7. Update README, CHANGELOG, release notes and `distribution/version.json`.
+8. Produce owner-private source package with signing material only outside public Git.
