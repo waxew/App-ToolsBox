@@ -233,13 +233,13 @@ private fun WhoisScreen() {
                         Socket().use { socket ->
                             socket.connect(InetSocketAddress("whois.iana.org", 43), 4_000)
                             socket.soTimeout = 4_000
-                            socket.getOutputStream().bufferedWriter().use { writer ->
-                                writer.write(domain.trim())
-                                writer.write("\r\n")
-                                writer.flush()
-                            }
+                            val writer = socket.getOutputStream().bufferedWriter()
+                            writer.write(domain.trim())
+                            writer.write("\r\n")
+                            writer.flush()
+                            socket.shutdownOutput()
                             socket.getInputStream().bufferedReader().use { reader ->
-                                reader.readLines().take(40).joinToString("\n")
+                                reader.lineSequence().take(40).joinToString("\n")
                             }
                         }
                     }.getOrElse { "WHOIS ناموفق بود: ${it.javaClass.simpleName}" }
