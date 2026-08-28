@@ -55,9 +55,14 @@ fun ToolboxApp(
         var activeDestination by remember { mutableStateOf(DrawerDestination.HOME) }
         var activeTool by remember { mutableStateOf<ToolItem?>(null) }
         var preferenceRevision by remember { mutableIntStateOf(0) }
+
         val favorites = remember(preferenceRevision) { preferences.favorites() }
         val hiddenTools = remember(preferenceRevision) { preferences.hiddenTools() }
+        val customCollection = remember(preferenceRevision) { preferences.customCollection() }
+        val recentTools = remember(preferenceRevision) { preferences.recentTools() }
         val homeLayout = remember(preferenceRevision) { preferences.homeLayout }
+        val sortMode = remember(preferenceRevision) { preferences.sortMode }
+        val cardSize = remember(preferenceRevision) { preferences.cardSize }
 
         fun notifyPreferencesChanged() {
             preferenceRevision++
@@ -73,6 +78,7 @@ fun ToolboxApp(
         fun openTool(tool: ToolItem) {
             preferences.markToolOpened(tool.id)
             activeTool = tool
+            preferenceRevision++
         }
 
         BackHandler(enabled = drawerState.isOpen || activeTool != null || activeDestination != DrawerDestination.HOME) {
@@ -114,13 +120,9 @@ fun ToolboxApp(
                         },
                         navigationIcon = {
                             if (activeTool != null) {
-                                IconButton(onClick = { activeTool = null }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت")
-                                }
+                                IconButton(onClick = { activeTool = null }) { Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت") }
                             } else {
-                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                    Icon(Icons.Default.Menu, contentDescription = "منو")
-                                }
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) { Icon(Icons.Default.Menu, contentDescription = "منو") }
                             }
                         },
                     )
@@ -131,25 +133,38 @@ fun ToolboxApp(
                     if (tool != null) {
                         Box(Modifier.padding(horizontal = 16.dp)) { ToolRouter(tool, preferences) }
                     } else {
+                        val commonToggleFavorite: (ToolItem) -> Unit = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() }
+                        val commonToggleCustom: (ToolItem) -> Unit = { preferences.toggleCustomCollection(it.id); notifyPreferencesChanged() }
+                        val commonHide: (ToolItem) -> Unit = { preferences.setToolHidden(it.id, true); notifyPreferencesChanged() }
+
                         when (activeDestination) {
                             DrawerDestination.HOME -> HomeScreen(
                                 tools = ToolCatalog.tools.filterNot { it.id in hiddenTools },
                                 favorites = favorites,
+                                customCollection = customCollection,
+                                recentTools = recentTools,
                                 layoutMode = homeLayout,
+                                sortMode = sortMode,
+                                cardSize = cardSize,
                                 onOpenTool = ::openTool,
-                                onToggleFavorite = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() },
+                                onToggleFavorite = commonToggleFavorite,
+                                onToggleCustom = commonToggleCustom,
+                                onHideTool = commonHide,
                             )
                             DrawerDestination.FAVORITES -> HomeScreen(
                                 tools = ToolCatalog.tools.filter { it.id in favorites && it.id !in hiddenTools },
                                 favorites = favorites,
+                                customCollection = customCollection,
+                                recentTools = recentTools,
                                 layoutMode = homeLayout,
+                                sortMode = sortMode,
+                                cardSize = cardSize,
                                 onOpenTool = ::openTool,
-                                onToggleFavorite = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() },
+                                onToggleFavorite = commonToggleFavorite,
+                                onToggleCustom = commonToggleCustom,
+                                onHideTool = commonHide,
                             )
-                            DrawerDestination.SETTINGS -> SettingsScreen(
-                                preferences = preferences,
-                                onChanged = ::notifyPreferencesChanged,
-                            )
+                            DrawerDestination.SETTINGS -> SettingsScreen(preferences = preferences, onChanged = ::notifyPreferencesChanged)
                             DrawerDestination.ABOUT -> AboutScreen()
                             DrawerDestination.CONTACT -> ContactScreen()
                         }
