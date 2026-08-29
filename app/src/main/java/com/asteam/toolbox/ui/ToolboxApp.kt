@@ -18,6 +18,8 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -58,7 +60,6 @@ fun ToolboxApp(
 
         val favorites = remember(preferenceRevision) { preferences.favorites() }
         val hiddenTools = remember(preferenceRevision) { preferences.hiddenTools() }
-        val customCollection = remember(preferenceRevision) { preferences.customCollection() }
         val recentTools = remember(preferenceRevision) { preferences.recentTools() }
         val homeLayout = remember(preferenceRevision) { preferences.homeLayout }
         val sortMode = remember(preferenceRevision) { preferences.sortMode }
@@ -79,6 +80,10 @@ fun ToolboxApp(
             preferences.markToolOpened(tool.id)
             activeTool = tool
             preferenceRevision++
+        }
+
+        fun openToolById(toolId: String) {
+            ToolCatalog.tools.firstOrNull { it.id == toolId }?.let(::openTool)
         }
 
         BackHandler(enabled = drawerState.isOpen || activeTool != null || activeDestination != DrawerDestination.HOME) {
@@ -105,8 +110,13 @@ fun ToolboxApp(
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 contentWindowInsets = WindowInsets.safeDrawing,
+                containerColor = MaterialTheme.colorScheme.background,
                 topBar = {
                     TopAppBar(
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
                         title = {
                             Text(
                                 activeTool?.title ?: when (activeDestination) {
@@ -131,37 +141,38 @@ fun ToolboxApp(
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     val tool = activeTool
                     if (tool != null) {
-                        Box(Modifier.padding(horizontal = 16.dp)) { ToolRouter(tool, preferences) }
+                        Box(Modifier.padding(horizontal = 16.dp)) {
+                            ToolRouter(
+                                tool = tool,
+                                preferences = preferences,
+                                onOpenToolById = ::openToolById,
+                            )
+                        }
                     } else {
                         val commonToggleFavorite: (ToolItem) -> Unit = { preferences.toggleFavorite(it.id); notifyPreferencesChanged() }
-                        val commonToggleCustom: (ToolItem) -> Unit = { preferences.toggleCustomCollection(it.id); notifyPreferencesChanged() }
                         val commonHide: (ToolItem) -> Unit = { preferences.setToolHidden(it.id, true); notifyPreferencesChanged() }
 
                         when (activeDestination) {
                             DrawerDestination.HOME -> HomeScreen(
                                 tools = ToolCatalog.tools.filterNot { it.id in hiddenTools },
                                 favorites = favorites,
-                                customCollection = customCollection,
                                 recentTools = recentTools,
                                 layoutMode = homeLayout,
                                 sortMode = sortMode,
                                 cardSize = cardSize,
                                 onOpenTool = ::openTool,
                                 onToggleFavorite = commonToggleFavorite,
-                                onToggleCustom = commonToggleCustom,
                                 onHideTool = commonHide,
                             )
                             DrawerDestination.FAVORITES -> HomeScreen(
                                 tools = ToolCatalog.tools.filter { it.id in favorites && it.id !in hiddenTools },
                                 favorites = favorites,
-                                customCollection = customCollection,
                                 recentTools = recentTools,
                                 layoutMode = homeLayout,
                                 sortMode = sortMode,
                                 cardSize = cardSize,
                                 onOpenTool = ::openTool,
                                 onToggleFavorite = commonToggleFavorite,
-                                onToggleCustom = commonToggleCustom,
                                 onHideTool = commonHide,
                             )
                             DrawerDestination.SETTINGS -> SettingsScreen(preferences = preferences, onChanged = ::notifyPreferencesChanged)
