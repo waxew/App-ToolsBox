@@ -5,7 +5,7 @@
 - Application name: `جعبه ابزار`
 - Application ID: `com.asteam.toolbox`
 - Release alias: `app-toolsbox`
-- Version: `2.0.0 (11)`
+- Version: `2.0.1 (12)`
 - Main tool count: `111`
 - Development group: `as Team`
 - Support: `AS.Support.info@gmail.com`
@@ -21,12 +21,22 @@
 - minSdk: `26`
 
 ## Architecture
-Single-activity Compose application with stable tool IDs. `ToolCatalog` is the authoritative 111-tool catalog and `ToolRouter` dispatches to feature-oriented modules.
+Single-activity Compose application with stable tool IDs. `ToolCatalog` remains the authoritative 111-tool catalog and `ToolRouter` dispatches to feature-oriented modules.
 
 Feature modules include base calculations/converters, CameraX scanner, advanced QR, professional measurement/GPS/audio, advanced calculations, text/developer tools, network diagnostics, Persian/Jalali calendar tools, local reminder, backup/restore, widget and Quick Settings tile.
 
-## Local data and personalization
-`UserPreferences` keeps profile data, favorites, counter, scanner history, theme mode, accent color, home layout, sort mode, card size, hidden tools, custom collection and recent tools. Existing keys are retained for update compatibility.
+`HardwareDiagnosticsTools.kt` is a management/diagnostics surface opened from Settings. It checks real Android hardware/permission state for GPS, microphone, sensors, camera/scanner, widget pinning, Quick Settings Tile and Reminder/notifications, then deep-links into the corresponding Toolbox feature.
+
+## Home UI / personalization
+- Grid/List, sort and card-size preferences remain persistent.
+- Tool cards use fixed heights per selected size so neighboring cards stay aligned.
+- Each card exposes only two vertical actions: Favorite (heart) and Hide.
+- Bookmark/save/custom-collection UI is removed in v2.0.1. Old customCollection preference data remains readable for backward-compatible backup import.
+- Settings shows the complete hidden-tool list with per-tool Restore and Restore-all.
+- Home uses a graphical header, rounded search, icon badges, rounded cards, border and elevation.
+
+## Local data
+`UserPreferences` keeps profile data, favorites, counter, scanner history, theme mode, accent color, home layout, sort mode, card size, hidden tools and recent tools. Existing keys are retained for update compatibility.
 
 Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile image URI remains outside portable backup because provider URIs are device-specific.
 
@@ -50,6 +60,7 @@ Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile i
 - Home-screen AppWidget has no background polling.
 - Quick Settings Tile controls flashlight when camera permission is already granted.
 - Reminder uses inexact `AlarmManager.setAndAllowWhileIdle`, avoiding exact-alarm special access.
+- Hardware diagnostics can request relevant runtime permissions and launch supported integration setup flows.
 
 ## Update compatibility rules
 1. Never change `applicationId` after public release.
@@ -65,7 +76,7 @@ Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile i
 2. Build debug APK.
 3. Build release APK/AAB.
 4. Test navigation/back behavior and permission gates.
-5. Test scanner/QR, GPS, audio, network, Jalali calendar/reminder, widget and tile on supported hardware.
+5. Test hardware diagnostics and scanner/QR, GPS, audio, network, Jalali calendar/reminder, widget and tile on supported real hardware.
 6. Verify production signing certificate.
 7. Update README, CHANGELOG, release notes and version metadata.
 8. Keep owner-private signing bundle outside public Git.
