@@ -9,17 +9,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.BuildConfig
+import com.asteam.toolbox.data.ToolCatalog
 import com.asteam.toolbox.data.UserPreferences
 import com.asteam.toolbox.ui.components.ResultCard
 import com.asteam.toolbox.ui.components.ToolHeader
@@ -68,12 +77,39 @@ fun ContactScreen() {
 }
 
 @Composable
-fun SettingsScreen(preferences: UserPreferences, onChanged: () -> Unit) {
+fun SettingsScreen(
+    preferences: UserPreferences,
+    onChanged: () -> Unit,
+    onOpenHardwareDiagnostics: () -> Unit = {},
+) {
+    val hiddenIds = preferences.hiddenTools()
+    val hiddenItems = ToolCatalog.tools.filter { it.id in hiddenIds }
+
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         ToolHeader("تنظیمات", "شخصی‌سازی در حافظه محلی ذخیره می‌شود و بعد از آپدیت باقی می‌ماند.")
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("مرکز تست سخت‌افزار", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "GPS، میکروفون، سنسورها، دوربین، Scanner، Widget، Quick Settings Tile و Reminder را روی همین گوشی بررسی کنید.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Button(onClick = onOpenHardwareDiagnostics, modifier = Modifier.fillMaxWidth()) {
+                    Text("باز کردن مرکز تست سخت‌افزار")
+                }
+            }
+        }
 
         Text("حالت نمایش", fontWeight = FontWeight.Bold)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -109,12 +145,45 @@ fun SettingsScreen(preferences: UserPreferences, onChanged: () -> Unit) {
             }
         }
 
-        ResultCard("مجموعه من", "${preferences.customCollection().size} ابزار", "با آیکون نشانک روی کارت‌ها مدیریت می‌شود.")
-        ResultCard("ابزارهای مخفی", preferences.hiddenTools().size.toString(), "با آیکون چشم روی کارت ابزار مخفی می‌شود.")
-        if (preferences.hiddenTools().isNotEmpty()) {
+        Text("ابزارهای مخفی", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        if (hiddenItems.isEmpty()) {
+            ResultCard("ابزارهای مخفی", "هیچ ابزاری مخفی نیست", "از آیکون چشم روی کارت هر ابزار می‌توانید آن را مخفی کنید.")
+        } else {
+            Text(
+                "${hiddenItems.size} ابزار مخفی شده است. هر مورد را می‌توانید جداگانه برگردانید.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            hiddenItems.forEach { tool ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(tool.symbol, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(tool.title, fontWeight = FontWeight.Bold)
+                            Text(tool.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        IconButton(
+                            onClick = {
+                                preferences.setToolHidden(tool.id, false)
+                                onChanged()
+                            },
+                        ) {
+                            Icon(Icons.Outlined.Restore, contentDescription = "برگرداندن ${tool.title}")
+                        }
+                    }
+                }
+            }
             Button(
                 onClick = {
-                    preferences.hiddenTools().toList().forEach { preferences.setToolHidden(it, false) }
+                    hiddenIds.forEach { preferences.setToolHidden(it, false) }
                     onChanged()
                 },
                 modifier = Modifier.fillMaxWidth(),
