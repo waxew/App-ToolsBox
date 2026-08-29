@@ -14,6 +14,7 @@ import com.asteam.toolbox.tools.ConverterToolScreen
 import com.asteam.toolbox.tools.EnhancedScannerToolScreen
 import com.asteam.toolbox.tools.EverydayToolScreen
 import com.asteam.toolbox.tools.ExtraUtilityToolScreen
+import com.asteam.toolbox.tools.HardwareDiagnosticsScreen
 import com.asteam.toolbox.tools.LocalReminderScreen
 import com.asteam.toolbox.tools.MeasurementToolScreen
 import com.asteam.toolbox.tools.NetworkToolScreen
@@ -45,8 +46,13 @@ private val persianDateIds = setOf(
 private val extraUtilityIds = setOf("unix_time", "roman_number", "gcd_lcm", "slugify", "reverse_text", "line_numbering")
 
 @Composable
-fun ToolRouter(tool: ToolItem, preferences: UserPreferences) {
+fun ToolRouter(
+    tool: ToolItem,
+    preferences: UserPreferences,
+    onOpenToolById: (String) -> Unit = {},
+) {
     when {
+        tool.id == "hardware_diagnostics" -> HardwareDiagnosticsScreen(onOpenTool = onOpenToolById)
         tool.id == "qr" -> AdvancedQrScreen()
         tool.id == "qr_scanner" -> EnhancedScannerToolScreen(onlyQr = true, preferences = preferences)
         tool.id == "barcode_scanner" -> EnhancedScannerToolScreen(onlyQr = false, preferences = preferences)
