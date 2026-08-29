@@ -13,13 +13,13 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.data.ToolCatalog
+import com.asteam.toolbox.data.ToolCategory
 import com.asteam.toolbox.data.ToolItem
 import com.asteam.toolbox.data.UserPreferences
 import com.asteam.toolbox.ui.screens.AboutScreen
@@ -57,6 +58,15 @@ fun ToolboxApp(
         var activeDestination by remember { mutableStateOf(DrawerDestination.HOME) }
         var activeTool by remember { mutableStateOf<ToolItem?>(null) }
         var preferenceRevision by remember { mutableIntStateOf(0) }
+        val hardwareDiagnosticsTool = remember {
+            ToolItem(
+                id = "hardware_diagnostics",
+                title = "مرکز تست سخت‌افزار",
+                subtitle = "بررسی GPS، میکروفون، سنسورها، دوربین و قابلیت‌های سیستم",
+                category = ToolCategory.SYSTEM,
+                symbol = "HW",
+            )
+        }
 
         val favorites = remember(preferenceRevision) { preferences.favorites() }
         val hiddenTools = remember(preferenceRevision) { preferences.hiddenTools() }
@@ -77,7 +87,7 @@ fun ToolboxApp(
         }
 
         fun openTool(tool: ToolItem) {
-            preferences.markToolOpened(tool.id)
+            if (tool.id != "hardware_diagnostics") preferences.markToolOpened(tool.id)
             activeTool = tool
             preferenceRevision++
         }
@@ -175,7 +185,11 @@ fun ToolboxApp(
                                 onToggleFavorite = commonToggleFavorite,
                                 onHideTool = commonHide,
                             )
-                            DrawerDestination.SETTINGS -> SettingsScreen(preferences = preferences, onChanged = ::notifyPreferencesChanged)
+                            DrawerDestination.SETTINGS -> SettingsScreen(
+                                preferences = preferences,
+                                onChanged = ::notifyPreferencesChanged,
+                                onOpenHardwareDiagnostics = { openTool(hardwareDiagnosticsTool) },
+                            )
                             DrawerDestination.ABOUT -> AboutScreen()
                             DrawerDestination.CONTACT -> ContactScreen()
                         }
