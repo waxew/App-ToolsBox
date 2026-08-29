@@ -1,20 +1,24 @@
 package com.asteam.toolbox.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Card
@@ -32,7 +36,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.data.ToolCategory
@@ -42,25 +49,21 @@ import com.asteam.toolbox.data.ToolItem
 fun HomeScreen(
     tools: List<ToolItem>,
     favorites: Set<String>,
-    customCollection: Set<String> = emptySet(),
     recentTools: List<String> = emptyList(),
     layoutMode: String = "grid",
     sortMode: String = "catalog",
     cardSize: String = "normal",
     onOpenTool: (ToolItem) -> Unit,
     onToggleFavorite: (ToolItem) -> Unit,
-    onToggleCustom: (ToolItem) -> Unit = {},
     onHideTool: (ToolItem) -> Unit = {},
 ) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<ToolCategory?>(null) }
-    var customOnly by remember { mutableStateOf(false) }
 
     val filtered = tools.filter { tool ->
         val categoryMatches = selectedCategory == null || tool.category == selectedCategory
         val queryMatches = query.isBlank() || tool.title.contains(query, true) || tool.subtitle.contains(query, true)
-        val collectionMatches = !customOnly || tool.id in customCollection
-        categoryMatches && queryMatches && collectionMatches
+        categoryMatches && queryMatches
     }
     val recentIndex = remember(recentTools) { recentTools.withIndex().associate { it.value to it.index } }
     val visibleTools = when (sortMode) {
@@ -75,43 +78,66 @@ fun HomeScreen(
     }
     val cardPadding = when (cardSize) {
         "compact" -> 10.dp
-        "large" -> 18.dp
-        else -> 14.dp
+        "large" -> 16.dp
+        else -> 13.dp
+    }
+    val cardHeight = when (cardSize) {
+        "compact" -> 156.dp
+        "large" -> 194.dp
+        else -> 174.dp
     }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.82f),
+                        ),
+                    ),
+                )
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("ابزارهای روزمره، یک‌جا", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "ابزار موردنظر را جستجو کنید یا از دسته‌بندی‌ها انتخاب کنید.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
             label = { Text("جستجوی ابزار") },
             placeholder = { Text("مثلاً درصد، قطب‌نما، QR...") },
             singleLine = true,
+            shape = RoundedCornerShape(18.dp),
             modifier = Modifier.fillMaxWidth(),
         )
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
                 FilterChip(
-                    selected = !customOnly && selectedCategory == null,
-                    onClick = { customOnly = false; selectedCategory = null },
+                    selected = selectedCategory == null,
+                    onClick = { selectedCategory = null },
                     label = { Text("همه") },
-                )
-            }
-            item {
-                FilterChip(
-                    selected = customOnly,
-                    onClick = { customOnly = true; selectedCategory = null },
-                    label = { Text("مجموعه من") },
                 )
             }
             items(ToolCategory.entries.size) { index ->
                 val category = ToolCategory.entries[index]
                 FilterChip(
-                    selected = !customOnly && selectedCategory == category,
-                    onClick = { customOnly = false; selectedCategory = category },
+                    selected = selectedCategory == category,
+                    onClick = { selectedCategory = category },
                     label = { Text(category.title) },
                 )
             }
@@ -133,11 +159,10 @@ fun HomeScreen(
                 ToolCard(
                     tool = tool,
                     favorite = tool.id in favorites,
-                    inCustomCollection = tool.id in customCollection,
                     padding = cardPadding,
+                    height = cardHeight,
                     onClick = { onOpenTool(tool) },
                     onToggleFavorite = { onToggleFavorite(tool) },
-                    onToggleCustom = { onToggleCustom(tool) },
                     onHide = { onHideTool(tool) },
                 )
             }
@@ -149,46 +174,86 @@ fun HomeScreen(
 private fun ToolCard(
     tool: ToolItem,
     favorite: Boolean,
-    inCustomCollection: Boolean,
     padding: Dp,
+    height: Dp,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onToggleCustom: () -> Unit,
     onHide: () -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)),
+        modifier = Modifier.fillMaxWidth().height(height).clickable(onClick = onClick),
+        shape = RoundedCornerShape(22.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = CardDefaults.outlinedCardBorder(),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(padding),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Row(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.Top,
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = tool.symbol,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = onToggleCustom) {
-                    Icon(
-                        imageVector = if (inCustomCollection) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                        contentDescription = if (inCustomCollection) "حذف از مجموعه من" else "افزودن به مجموعه من",
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.secondaryContainer,
+                                ),
+                            ),
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = tool.symbol,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip,
                     )
                 }
+                Text(
+                    tool.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    tool.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
                         imageVector = if (favorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = if (favorite) "حذف از علاقه‌مندی" else "افزودن به علاقه‌مندی",
+                        tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 IconButton(onClick = onHide) {
-                    Icon(Icons.Outlined.VisibilityOff, contentDescription = "مخفی کردن ابزار")
+                    Icon(
+                        Icons.Outlined.VisibilityOff,
+                        contentDescription = "مخفی کردن ابزار",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
-            Text(tool.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(tool.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
