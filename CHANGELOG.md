@@ -2,6 +2,18 @@
 
 تمام تغییرات قابل‌توجه پروژه در این فایل ثبت می‌شوند. هر Release باید قبل از نهایی‌شدن در README، CHANGELOG و Release Notes مستند شود.
 
+## 2.1.0 - 2026-08-30
+
+### Changed
+- نسخه به `2.1.0 / versionCode 13` ارتقا یافت.
+- منطق فعال Save/Bookmark/Custom Collection از `UserPreferences` حذف شد و کلید قدیمی آن هنگام ارتقا پاک می‌شود.
+- Backup به schema 3 ارتقا یافت؛ Import schema 1 و 2 ادامه دارد ولی customCollection قدیمی عمداً بازیابی نمی‌شود.
+- Theme روشن و تیره با Surface/Containerهای هماهنگ‌تر و گرم‌تر بازطراحی شد و Accent انتخابی کاربر حفظ می‌شود.
+- Drawer دارای هدر گرادیانی، قاب پروفایل و آیتم‌های گردتر شد؛ TopBar نیز با رنگ Accent هماهنگ شد.
+
+### Release
+- این نسخه برای Build نهایی با همان Signing Identity قبلی آماده شده است تا نصب به‌صورت Update روی نسخه Production امکان‌پذیر بماند.
+
 ## 2.0.1 - 2026-08-29
 
 ### Added
