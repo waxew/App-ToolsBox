@@ -12,6 +12,12 @@ import org.json.JSONObject
 class UserPreferences(context: Context) {
     private val prefs = context.getSharedPreferences("toolsbox_preferences", Context.MODE_PRIVATE)
 
+    init {
+        // The old bookmark/save collection was removed from the product in v2.0.1.
+        // Delete its legacy local key so upgrades do not retain an invisible, unused data set.
+        prefs.edit().remove(KEY_LEGACY_CUSTOM_COLLECTION).apply()
+    }
+
     var userName: String
         get() = prefs.getString(KEY_NAME, "کاربر جعبه ابزار") ?: "کاربر جعبه ابزار"
         set(value) = prefs.edit().putString(KEY_NAME, value.trim()).apply()
@@ -65,15 +71,6 @@ class UserPreferences(context: Context) {
         prefs.edit().putStringSet(KEY_HIDDEN_TOOLS, next).apply()
     }
 
-    /** A user-curated collection separate from Favorites. */
-    fun customCollection(): Set<String> = prefs.getStringSet(KEY_CUSTOM_COLLECTION, emptySet())?.toSet() ?: emptySet()
-
-    fun toggleCustomCollection(toolId: String) {
-        val next = customCollection().toMutableSet()
-        if (!next.add(toolId)) next.remove(toolId)
-        prefs.edit().putStringSet(KEY_CUSTOM_COLLECTION, next).apply()
-    }
-
     fun recentTools(): List<String> = prefs.getString(KEY_RECENT_TOOLS, "").orEmpty().split('|').filter(String::isNotBlank)
 
     fun markToolOpened(toolId: String) {
@@ -123,7 +120,7 @@ class UserPreferences(context: Context) {
             history.put(JSONObject().put("value", item.value).put("format", item.format).put("scannedAt", item.scannedAt))
         }
         return JSONObject()
-            .put("schemaVersion", 2)
+            .put("schemaVersion", 3)
             .put("userName", userName)
             .put("counter", counter)
             .put("themeMode", themeMode)
@@ -133,17 +130,19 @@ class UserPreferences(context: Context) {
             .put("cardSize", cardSize)
             .put("favorites", JSONArray(favorites().toList()))
             .put("hiddenTools", JSONArray(hiddenTools().toList()))
-            .put("customCollection", JSONArray(customCollection().toList()))
             .put("recentTools", JSONArray(recentTools()))
             .put("scanHistory", history)
             .toString(2)
     }
 
-    /** Imports schema 1 or 2; unknown future schemas are rejected rather than partially imported. */
+    /**
+     * Imports schema 1, 2 or 3. Legacy schema 1/2 may contain customCollection,
+     * but that removed feature is deliberately ignored while all supported data is restored.
+     */
     fun importBackupJson(raw: String): Result<Unit> = runCatching {
         val root = JSONObject(raw)
         val schema = root.optInt("schemaVersion", 0)
-        require(schema in 1..2) { "Unsupported backup schema" }
+        require(schema in 1..3) { "Unsupported backup schema" }
 
         fun jsonSet(name: String): Set<String> {
             val array = root.optJSONArray(name) ?: JSONArray()
@@ -160,7 +159,7 @@ class UserPreferences(context: Context) {
             .putString(KEY_CARD_SIZE, root.optString("cardSize", "normal"))
             .putStringSet(KEY_FAVORITES, jsonSet("favorites"))
             .putStringSet(KEY_HIDDEN_TOOLS, jsonSet("hiddenTools"))
-            .putStringSet(KEY_CUSTOM_COLLECTION, jsonSet("customCollection"))
+            .remove(KEY_LEGACY_CUSTOM_COLLECTION)
 
         val recentArray = root.optJSONArray("recentTools") ?: JSONArray()
         val recent = buildList { for (i in 0 until recentArray.length()) add(recentArray.optString(i)) }
@@ -188,7 +187,7 @@ class UserPreferences(context: Context) {
         const val KEY_SORT_MODE = "sort_mode"
         const val KEY_CARD_SIZE = "card_size"
         const val KEY_HIDDEN_TOOLS = "hidden_tools"
-        const val KEY_CUSTOM_COLLECTION = "custom_collection"
+        const val KEY_LEGACY_CUSTOM_COLLECTION = "custom_collection"
         const val KEY_RECENT_TOOLS = "recent_tools"
         const val MAX_SCAN_HISTORY = 100
     }
