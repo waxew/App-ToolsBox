@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.asteam.toolbox.data.ToolCatalog
@@ -124,8 +125,9 @@ fun ToolboxApp(
                 topBar = {
                     TopAppBar(
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f),
+                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            navigationIconContentColor = MaterialTheme.colorScheme.primary,
                         ),
                         title = {
                             Text(
@@ -136,6 +138,7 @@ fun ToolboxApp(
                                     DrawerDestination.ABOUT -> "درباره نرم‌افزار"
                                     DrawerDestination.CONTACT -> "ارتباط با ما"
                                 },
+                                fontWeight = FontWeight.Bold,
                             )
                         },
                         navigationIcon = {
