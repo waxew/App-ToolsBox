@@ -1,10 +1,10 @@
 # App-ToolsBox | جعبه ابزار همه‌کاره
 
-`App-ToolsBox` یک جعبه‌ابزار فارسی، ماژولار و Offline-first برای Android است. نسخه `2.0.1` با **111 ابزار اصلی** مسیر توسعه تعریف‌شده تا v2 را در یک کدبیس پایدار و Update-friendly جمع می‌کند و روی تجربه کاربری، تست سخت‌افزار و مدیریت ابزارهای مخفی تمرکز دارد.
+`App-ToolsBox` یک جعبه‌ابزار فارسی، ماژولار و Offline-first برای Android است. نسخه `2.1.0` با **111 ابزار اصلی** مسیر توسعه تعریف‌شده تا v2 را در یک کدبیس پایدار و Update-friendly جمع می‌کند و روی تجربه کاربری، تست سخت‌افزار و مدیریت ابزارهای مخفی تمرکز دارد.
 
 ## وضعیت نسخه
-- Version: `2.0.1`
-- versionCode: `12`
+- Version: `2.1.0`
+- versionCode: `13`
 - Main tools: `111`
 - applicationId: `com.asteam.toolbox`
 - Kotlin: `2.3.21`
@@ -59,9 +59,10 @@ QR Generator حرفه‌ای شامل URL-to-QR، Wi-Fi، vCard، تلفن، SMS
 - روی هر کارت فقط دو اکشن «قلب» و «مخفی» نمایش داده می‌شود و این دو به‌صورت عمودی قرار دارند.
 - ابزارهای مخفی در تنظیمات به‌صورت فهرست کامل با Restore تکی و Restore همه قابل مدیریت هستند.
 - پروفایل محلی با نام و تصویر.
+- Theme روشن و تیره، Drawer و TopBar در v2.1.0 با Accent انتخابی هماهنگ‌تر شده‌اند.
 
 ## Backup / Restore
-Storage Access Framework یک فایل JSON نسخه‌دار از تنظیمات، Accent، Layout، Sort، Card Size، علاقه‌مندی‌ها، ابزارهای مخفی/اخیر، شمارنده و تاریخچه اسکن می‌سازد یا بازیابی می‌کند. URI تصویر پروفایل به دلیل وابستگی به دستگاه در Backup قابل‌انتقال ذخیره نمی‌شود. داده قدیمی `customCollection` برای سازگاری Backupهای نسخه 2.0.0 هنوز قابل Import است، اما گزینه نشانک/سیو از رابط v2.0.1 حذف شده است.
+Storage Access Framework یک فایل JSON نسخه‌دار از تنظیمات، Accent، Layout، Sort، Card Size، علاقه‌مندی‌ها، ابزارهای مخفی/اخیر، شمارنده و تاریخچه اسکن می‌سازد یا بازیابی می‌کند. URI تصویر پروفایل به دلیل وابستگی به دستگاه در Backup قابل‌انتقال ذخیره نمی‌شود. Backup جدید با schema 3 ساخته می‌شود. Import فایل‌های schema 1 و 2 همچنان پشتیبانی می‌شود، اما داده قدیمی `customCollection` عمداً نادیده گرفته و پاک می‌شود چون قابلیت نشانک/سیو به‌طور کامل حذف شده است.
 
 ## Android integration
 - Home-screen Widget بدون polling پس‌زمینه.
@@ -77,7 +78,7 @@ Storage Access Framework یک فایل JSON نسخه‌دار از تنظیما�
 ## Update-friendly و Signing
 - applicationId ثابت است.
 - versionCode با انتشار افزایش می‌یابد.
-- کلیدهای SharedPreferences قبلی حفظ یا سازگار وارد می‌شوند.
+- کلیدهای SharedPreferences قبلی حفظ یا به‌صورت صریح Migration می‌شوند.
 - کلید Production Signing و رمزها هرگز نباید در GitHub عمومی Commit شوند.
 - حذف برنامه یا پاک‌کردن App Data تنها حالت عادی حذف داده‌های محلی است.
 
@@ -88,7 +89,7 @@ Storage Access Framework یک فایل JSON نسخه‌دار از تنظیما�
 ./gradlew :app:assembleRelease
 ```
 
-GitHub Actions Unit Test، Debug APK، Release APK و Source Snapshot را تولید می‌کند.
+GitHub Actions Unit Test، Debug APK، Release APK و Source Snapshot را تولید می‌کند. Release عمومی CI در نبود کلید خصوصی Production می‌تواند unsigned باشد؛ بسته مالک با کلید ثابت Production خارج از GitHub امضا می‌شود.
 
 ## تاریخچه اصلی
 - `v1.0.0`: هسته 49 ابزاری، فارسی RTL، Drawer، جستجو، علاقه‌مندی و CI.
@@ -97,5 +98,6 @@ GitHub Actions Unit Test، Debug APK، Release APK و Source Snapshot را تو�
 - Roadmap `v1.3–v1.9`: محاسبات پیشرفته، متن/Dev، شبکه، شمسی، شخصی‌سازی، Widget/Quick Tile و Backup/Restore.
 - `v2.0.0`: ادغام نهایی Roadmap با 111 ابزار اصلی.
 - `v2.0.1`: مرکز تست سخت‌افزار، فهرست کامل ابزارهای مخفی، حذف نشانک/سیو از کارت‌ها، اکشن‌های عمودی و بازطراحی کارت‌های Home.
+- `v2.1.0`: حذف کامل داده/منطق Save، Backup schema 3، Theme گرم‌تر و هماهنگی گرافیکی Drawer و TopBar.
 
 جزئیات کامل در `CHANGELOG.md`، `PROJECT_INFO.md` و `distribution/release-notes-fa.md` ثبت می‌شود.
