@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -43,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +56,7 @@ import com.asteam.toolbox.data.UserPreferences
 
 enum class DrawerDestination { HOME, FAVORITES, SETTINGS, ABOUT, CONTACT }
 
+/** Shared right-side drawer with local profile and app navigation. */
 @Composable
 fun DrawerContent(
     preferences: UserPreferences,
@@ -74,57 +78,88 @@ fun DrawerContent(
     }
 
     Column(
-        modifier = Modifier.fillMaxHeight().fillMaxWidth(0.86f)
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth(0.86f)
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 28.dp),
+            .padding(horizontal = 14.dp, vertical = 24.dp),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        // A colored profile header gives the drawer a clear visual identity without using external assets.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(26.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.secondaryContainer,
+                            MaterialTheme.colorScheme.tertiaryContainer,
+                        ),
+                    ),
+                )
+                .padding(horizontal = 16.dp, vertical = 18.dp),
         ) {
-            Box(
-                modifier = Modifier.size(92.dp).clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { imagePicker.launch(arrayOf("image/*")) },
-                contentAlignment = Alignment.Center,
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                val bitmap = remember(profileUri) {
-                    profileUri?.let { value ->
-                        runCatching {
-                            context.contentResolver.openInputStream(Uri.parse(value))?.use { input ->
-                                BitmapFactory.decodeStream(input)
-                            }
-                        }.getOrNull()
+                Box(
+                    modifier = Modifier
+                        .size(94.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(3.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.75f), CircleShape)
+                        .clickable { imagePicker.launch(arrayOf("image/*")) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val bitmap = remember(profileUri) {
+                        profileUri?.let { value ->
+                            runCatching {
+                                context.contentResolver.openInputStream(Uri.parse(value))?.use { input ->
+                                    BitmapFactory.decodeStream(input)
+                                }
+                            }.getOrNull()
+                        }
+                    }
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "تصویر پروفایل",
+                            modifier = Modifier.matchParentSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "انتخاب تصویر پروفایل",
+                            modifier = Modifier.size(46.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "تصویر پروفایل",
-                        modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.Crop,
+                Text(
+                    "برای تغییر تصویر، لمس کنید",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(
+                        name,
+                        modifier = Modifier.padding(horizontal = 6.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                     )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "انتخاب تصویر پروفایل",
-                        modifier = Modifier.size(46.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-            Text("برای تغییر تصویر، لمس کنید", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(name, modifier = Modifier.padding(horizontal = 6.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                IconButton(onClick = { showNameDialog = true }, modifier = Modifier.size(34.dp)) {
-                    Icon(Icons.Default.Edit, contentDescription = "ویرایش نام", modifier = Modifier.size(18.dp))
+                    IconButton(onClick = { showNameDialog = true }, modifier = Modifier.size(34.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "ویرایش نام", modifier = Modifier.size(18.dp))
+                    }
                 }
             }
         }
 
-        Spacer(Modifier.height(12.dp)); HorizontalDivider(); Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(14.dp))
         DrawerItem("خانه", { Icon(Icons.Default.Home, contentDescription = null) }, active == DrawerDestination.HOME) { onDestination(DrawerDestination.HOME) }
         DrawerItem("علاقه‌مندی‌ها", { Icon(Icons.Default.Favorite, contentDescription = null) }, active == DrawerDestination.FAVORITES) { onDestination(DrawerDestination.FAVORITES) }
         DrawerItem("تنظیمات", { Icon(Icons.Default.Settings, contentDescription = null) }, active == DrawerDestination.SETTINGS) { onDestination(DrawerDestination.SETTINGS) }
@@ -174,10 +209,11 @@ fun DrawerContent(
 @Composable
 private fun DrawerItem(label: String, icon: @Composable () -> Unit, selected: Boolean, onClick: () -> Unit) {
     NavigationDrawerItem(
-        label = { Text(label) },
+        label = { Text(label, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) },
         selected = selected,
         onClick = onClick,
         icon = icon,
+        shape = RoundedCornerShape(18.dp),
         modifier = Modifier.padding(vertical = 2.dp),
     )
 }
