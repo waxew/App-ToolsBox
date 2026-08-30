@@ -5,7 +5,7 @@
 - Application name: `جعبه ابزار`
 - Application ID: `com.asteam.toolbox`
 - Release alias: `app-toolsbox`
-- Version: `2.0.1 (12)`
+- Version: `2.1.0 (13)`
 - Main tool count: `111`
 - Development group: `as Team`
 - Support: `AS.Support.info@gmail.com`
@@ -31,14 +31,15 @@ Feature modules include base calculations/converters, CameraX scanner, advanced 
 - Grid/List, sort and card-size preferences remain persistent.
 - Tool cards use fixed heights per selected size so neighboring cards stay aligned.
 - Each card exposes only two vertical actions: Favorite (heart) and Hide.
-- Bookmark/save/custom-collection UI is removed in v2.0.1. Old customCollection preference data remains readable for backward-compatible backup import.
+- Bookmark/save/custom-collection UI and active storage logic are removed. Legacy customCollection data is discarded during upgrade/import.
 - Settings shows the complete hidden-tool list with per-tool Restore and Restore-all.
 - Home uses a graphical header, rounded search, icon badges, rounded cards, border and elevation.
+- v2.1.0 coordinates Theme, Drawer and TopBar with the selected accent and warmer surface colors.
 
 ## Local data
-`UserPreferences` keeps profile data, favorites, counter, scanner history, theme mode, accent color, home layout, sort mode, card size, hidden tools and recent tools. Existing keys are retained for update compatibility.
+`UserPreferences` keeps profile data, favorites, counter, scanner history, theme mode, accent color, home layout, sort mode, card size, hidden tools and recent tools. Existing supported keys are retained for update compatibility; removed features are migrated explicitly.
 
-Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile image URI remains outside portable backup because provider URIs are device-specific.
+Backup schema version `3` is JSON-based and accepts legacy schemas `1` and `2`. Legacy customCollection data is ignored/removed. Profile image URI remains outside portable backup because provider URIs are device-specific.
 
 ## Permissions
 - `CAMERA`: camera/scanner/flashlight tools.
@@ -65,7 +66,7 @@ Backup schema version `2` is JSON-based and accepts legacy schema `1`. Profile i
 ## Update compatibility rules
 1. Never change `applicationId` after public release.
 2. Increase `versionCode` for each public build.
-3. Keep preference keys stable or migrate them explicitly.
+3. Keep supported preference keys stable or migrate them explicitly.
 4. Never overwrite normal user data during update.
 5. Production updates must use the same signing identity.
 6. Database/schema changes require explicit migration.
